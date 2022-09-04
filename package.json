@@ -1,12 +1,20 @@
 {
-  "name": "asc-roguelike",
+  "name": "castle-dracula",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "_main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "serve": "parcel src/index.html",
-    "build": "tsc"
+    "build": "parcel build src/index.html --public-url '.'",
+    "electron-build": "npm run build && electron src/electron.js"
+  },
+  "build": {
+    "appId": "com.boskysoft",
+    "files": [
+       "src/electron.js",
+       "dist/**/*"
+    ]
   },
   "keywords": [],
   "author": "",
@@ -17,6 +25,8 @@
     "rand-seed": "^1.0.1"
   },
   "devDependencies": {
+    "electron": "^20.1.1",
+    "electron-builder": "^23.3.3",
     "parcel": "^2.7.0",
     "typescript": "^4.7.4"
   }
