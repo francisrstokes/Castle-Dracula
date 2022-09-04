@@ -1,0 +1,23 @@
+{
+  "name": "asc-roguelike",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "serve": "parcel src/index.html",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "astar-typescript": "^1.2.5",
+    "kandinsky-js": "^2.0.0",
+    "rand-seed": "^1.0.1"
+  },
+  "devDependencies": {
+    "parcel": "^2.7.0",
+    "typescript": "^4.7.4"
+  }
+}
