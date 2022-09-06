@@ -8,17 +8,18 @@ let mainWindow;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1440,
-    height: 810 + 22,
+    width: 1100,
+    height: 660,
     useContentSize: true
   });
 
   mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
   mainWindow.on('closed', () => (mainWindow = null));
 
-  setTimeout(mainWindow => {
-    console.log(mainWindow.getBounds());
-  }, 50, mainWindow);
+  mainWindow.on('ready-to-show', () => {
+    const size = mainWindow.getContentBounds();
+    console.log(size);
+  });
 }
 
 app.on('ready', createWindow);

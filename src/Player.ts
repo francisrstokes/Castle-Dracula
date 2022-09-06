@@ -1,6 +1,7 @@
 import { DOWN, Game, Layers, LEFT, RIGHT, Tile, UP, vAdd, vDist, Vector, vEqual, vSqDist, vSub } from "./engine";
 import { Level } from "./Level";
 import { Scene } from "./Scene";
+import { playArea } from "./ui";
 
 export abstract class ActorBase {
   // Position     :: Position in grid space
@@ -62,8 +63,6 @@ export class Player extends ActorBase {
   viewCircle: Vector[] = [];
   lightLevels: number[] = [0, 0.1, 0.2, 0.4, 0.6];//, 0.80];
 
-
-
   constructor(game: Game) {
     super(game);
 
@@ -71,7 +70,7 @@ export class Player extends ActorBase {
   }
 
   render(frame: number) {
-    this.game.renderer.drawTile(this.tiles[0][0], Layers.MG, this.position);
+    this.game.renderer.drawTile(this.tiles[0][0], Layers.MG, playArea.translate(this.position));
   }
 
   onBeforeCommit(frame: number) {

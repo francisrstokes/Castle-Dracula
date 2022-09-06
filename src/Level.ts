@@ -7,6 +7,7 @@ import { Room, Grid, Region, Exit, ConnectableEdges, Cardinal, RoomConnection, g
 import { array, mapRange } from "./util";
 
 import {AStarFinder} from 'astar-typescript';
+import { playArea } from "./ui";
 
 const WallTile = Tile.from('#', [0x60, 0x60, 0x60, 1], [0xff, 0xff, 0xff, 0.9]);
 const DoorTile = Tile.from('+', [0xb0, 0xb0, 0xb0, 1], [0xee, 0x10, 0x10, 0.7]);
@@ -313,18 +314,20 @@ export class Level extends Scene {
     timer: 0
   };
 
-  constructor(game: Game, seed: number, private gridSize: Vector, public player: Player) {
+  constructor(game: Game, seed: number, public player: Player) {
     super(game);
     this.renderer = game.renderer;
     this.random = new Random(seed);
 
-    this.level = array(gridSize[1], () => array(gridSize[0], () => null));
+    this.level = array(playArea.dimensions[1], () => array(playArea.dimensions[0], () => null));
 
-    const areaSize = 2000;
+    const levelTotalArea = playArea.dimensions[0] * playArea.dimensions[1];
+    const percentToFill = 0.6;
+    const areaSize = Math.floor(levelTotalArea * percentToFill);
 
-    this.gridBounds = vSub(gridSize, [1, 1]);
+    this.gridBounds = vSub(playArea.dimensions, [1, 1]);
 
-
+    debugger;
     this.procgen(areaSize);
 
     let startPoint: Vector | null = null;
@@ -581,12 +584,12 @@ export class Level extends Scene {
     let totalArea = 0;
 
     this.rooms = [];
-    this.level = array(this.gridSize[1], () => array(this.gridSize[0], () => null));
+    this.level = array(playArea.dimensions[1], () => array(playArea.dimensions[0], () => null));
 
     let room = this.generateRoom();
     let position: Vector = [
-      this.random.intBetween(0, this.gridSize[0] - room.maxWidth),
-      this.random.intBetween(0, this.gridSize[1] - room.maxHeight),
+      this.random.intBetween(0, playArea.dimensions[0] - room.maxWidth),
+      this.random.intBetween(0, playArea.dimensions[1] - room.maxHeight),
     ];
     room = translateRoom(room, position);
 
@@ -594,7 +597,7 @@ export class Level extends Scene {
     this.addRoom(room);
     totalArea += room.tiles.length;
 
-    const gridBounds = vSub(this.gridSize, [1, 1]);
+    const gridBounds = vSub(playArea.dimensions, [1, 1]);
 
     regenerate_room:
     while (totalArea < area) {
@@ -881,7 +884,7 @@ export class Level extends Scene {
       this.level.forEach(row => {
         row.forEach(lt => {
           if (lt) {
-            renderer.drawTile(lt.gridTile.tile, lt.gridTile.zPos, lt.gridTile.position);
+            renderer.drawTile(lt.gridTile.tile, lt.gridTile.zPos, playArea.translate(lt.gridTile.position));
           }
         });
       });
@@ -894,27 +897,35 @@ export class Level extends Scene {
 
           const dist = vDist(this.player.position, p);
           const lightIndex = Math.floor(mapRange([0, this.player.viewRadius], [0, this.player.lightLevels.length-1], dist));
-          this.renderer.drawTile(levelTile.gridTile.tile, levelTile.gridTile.zPos, levelTile.gridTile.position, {
+          renderer.drawTile(levelTile.gridTile.tile, levelTile.gridTile.zPos, playArea.translate(levelTile.gridTile.position), {
             darken: this.player.lightLevels[lightIndex]
           });
         }
       }
 
       this.levelSeen.forEach(gridTile => {
-        this.renderer.drawTile(gridTile.tile, gridTile.zPos, gridTile.position, {
+        this.renderer.drawTile(gridTile.tile, gridTile.zPos, playArea.translate(gridTile.position), {
           darken: 0.85
         });
       });
 
       if (this.showComputedPath) {
         this.computedPath.forEach(v => {
-          this.renderer.drawTile(PathTile, Layers.HUD, v);
+          this.renderer.drawTile(PathTile, Layers.HUD, playArea.translate(v));
         })
       }
 
       this.debugDrawBuffer.forEach(v => {
-        renderer.drawTile(HighlightTile, Layers.HUD, v);
+        renderer.drawTile(HighlightTile, Layers.HUD, playArea.translate(v));
       });
+
+      // if (this.getGame().input.mouseIsDown()) {
+      //   this.level.forEach(row => row.forEach(lt => {
+      //     if (lt) {
+      //       this.renderer.drawTile(lt.gridTile.tile, lt.gridTile.zPos, playArea.translate(lt.gridTile.position));
+      //     }
+      //   }))
+      // }
     }
 
     this.renderer.commit();
@@ -936,9 +947,13 @@ export class Level extends Scene {
     if (input.mouseMoved()) {
       // Which tile is the mouse pointed at
       const scaleV: Vector = [1/(this.renderer.getTileSize() * 0.5), 1/this.renderer.getTileSize()];
-      this.pathTarget = vMul(input.mousePositon(), scaleV);
-      this.pathTarget[0] = Math.floor(this.pathTarget[0]);
-      this.pathTarget[1] = Math.floor(this.pathTarget[1]);
+      let nextTarget = vMul(input.mousePositon(), scaleV);
+      nextTarget[0] = Math.floor(nextTarget[0]);
+      nextTarget[1] = Math.floor(nextTarget[1]);
+
+      if (vInZeroedBounds(this.gridBounds, nextTarget)) {
+        this.pathTarget = nextTarget;
+      }
 
       // Compute the path
       const searchGrid = this.level.map(row => row.map(lt => {
