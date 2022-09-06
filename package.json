@@ -6,8 +6,15 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "serve": "parcel src/index.html",
-    "build": "parcel build src/index.html --public-url '.'",
-    "electron-build": "npm run build && electron src/electron.js"
+    "build": "parcel build",
+    "electron-build": "npm run build && electron src/electron.js",
+    "clean": "rm -f dist/*.js* && rm -f .parcel-cache/*"
+  },
+  "targets": {
+    "default": {
+      "source": "src/index.html",
+      "publicUrl": "."
+    }
   },
   "build": {
     "appId": "com.francisrstokes.castledracula",

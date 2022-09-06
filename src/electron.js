@@ -1,8 +1,5 @@
-const electron = require('electron');
+const {app, BrowserWindow, ipcMain} = require('electron');
 const path = require('path');
-
-const app = electron.app;
-const BrowserWindow = electron.BrowserWindow;
 
 let mainWindow;
 
@@ -10,15 +7,18 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1100,
     height: 660,
-    useContentSize: true
+    useContentSize: true,
+    webPreferences: {
+      nodeIntegration: false,
+      preload: path.join(__dirname, 'preload.js')
+    },
   });
 
   mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
   mainWindow.on('closed', () => (mainWindow = null));
 
-  mainWindow.on('ready-to-show', () => {
-    const size = mainWindow.getContentBounds();
-    console.log(size);
+  ipcMain.on('set-size', (_event, width, height) => {
+    mainWindow.setSize(width, height);
   });
 }
 
