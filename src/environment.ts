@@ -10,13 +10,14 @@ export enum Env {
   Wall = 'Wall',
   Door = 'Door',
   Floor = 'Floor',
-}
+};
 
 export const Wall: EnvironmentalElement = {
-  tile: Tile.from('#', gray[2], gray[6]),
+  tile: Tile
+    .from('#', gray[2], gray[6])
+    .addProperties(['solid', 'wall']),
   description: 'A stone wall'
 };
-Wall.tile.addProperties(['solid', 'wall']);
 
 export const Door: EnvironmentalElement = {
   tile: Tile.from('+', gray[6], brown[7]),
