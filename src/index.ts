@@ -2,17 +2,7 @@ import { Game, Layers, Tile, Vector, vFloor, vMul, vScale } from "./engine";
 import { Player } from "./Player";
 import { Level } from "./Level";
 import { array } from "./util";
-import { gridSize, infoArea, messageArea, pixelScale } from "./ui";
-import { allColors, toCssRgba } from "./palette";
-
-const InfoTile = Tile.from('.', [255, 255, 255, 0.1], [200, 200, 200, 0.4]);
-const renderInfoArea = () => {
-  array(infoArea.dimensions[1], y => array<Vector>(infoArea.dimensions[0], x => [x, y]))
-  .flat(1)
-  .forEach(v => {
-    game.renderer.drawTile(InfoTile, Layers.BG, infoArea.translate(v))
-  });
-}
+import { gridSize, messageArea, pixelScale } from "./ui";
 
 const MessageTile = Tile.from('.', [255, 255, 255, 0.1], [200, 200, 200, 0.4]);
 const renderMessageArea = () => {
@@ -22,7 +12,6 @@ const renderMessageArea = () => {
     game.renderer.drawTile(MessageTile, Layers.BG, messageArea.translate(v));
   });
 }
-
 
 const screenMultiplier = 10;
 const canvasSize: Vector = vFloor(vScale(screenMultiplier, vMul(gridSize, pixelScale)));
@@ -46,7 +35,6 @@ game.on('draw', frame => {
   game.renderer.clearBackground([0, 0, 0, 1]);
   level.render(frame);
   playerObj.render(frame);
-  renderInfoArea();
   renderMessageArea();
 });
 

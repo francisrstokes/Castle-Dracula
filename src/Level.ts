@@ -6,7 +6,7 @@ import { Room, Grid, Region, Exit, ConnectableEdges, Cardinal, RoomConnection, g
 import { array, mapRange } from "./util";
 
 import {AStarFinder} from 'astar-typescript';
-import { descriptionArea, playArea } from "./ui";
+import { descriptionArea, infoArea, playArea } from "./ui";
 import { alpha, gray, noColor, red, yellow } from "./palette";
 import { environment as E } from "./environment";
 
@@ -919,6 +919,42 @@ export class Level extends Scene {
     });
   }
 
+  renderInfoArea() {
+    const SideTile = Tile.from(' ', gray[7], gray[1]);
+    const FilledTile = Tile.from(' ', gray[7], red[3]);
+    const UnfilledTile = Tile.from(' ', gray[7], red[1]);
+
+    type VectorTile = { v: Vector, t: Tile };
+    const divider: VectorTile[] = array(infoArea.dimensions[1], y => ({ v: [0, y], t: SideTile }));
+
+    divider.forEach(({v, t}) => {
+      this.renderer.drawTile(t, Layers.BG, infoArea.translate(v));
+    });
+
+    const numHealthItems = 17;
+    const numFilled = Math.floor(mapRange([0, this.player.maxHp], [0, numHealthItems], this.player.hp));
+    const percent = Math.floor(mapRange([0, this.player.maxHp], [0, 100], this.player.hp)).toString();
+
+    for (let i = 0; i < numHealthItems; i++) {
+      const x = i + 2;
+
+      let char = ' ';
+      if (i === 0) char = 'H';
+      if (i === 1) char = 'P';
+
+      // Percentage at the end of the bar
+      for (let pc = 0; pc < percent.length; pc++) {
+        if (i === numHealthItems - pc - 2) char = percent[percent.length - pc - 1];
+      }
+      if (i === numHealthItems - 1) char = '%';
+
+      const tile = (i < numFilled) ? FilledTile : UnfilledTile;
+      this.renderer.drawTile(tile, Layers.BG, infoArea.translate([x, 1]), {
+        char
+      });
+    }
+  }
+
   render(frame: number): void {
     const {renderer} = this;
 
@@ -929,6 +965,7 @@ export class Level extends Scene {
       this.renderLevelSeen();
       this.renderPath();
       this.renderTileDescription();
+      this.renderInfoArea();
     } else {
       this.level.forEach(row => {
         row.forEach(lt => {

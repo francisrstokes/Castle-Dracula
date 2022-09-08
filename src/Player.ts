@@ -5,14 +5,12 @@ import { Scene } from "./Scene";
 import { playArea } from "./ui";
 
 export abstract class ActorBase {
-  // Position     :: Position in grid space
   position: Vector = [2, 2];
-  // Tile[][]     :: 2D array of tiles to draw (origin is top left, or Tiles[0][0])
   tiles: Tile[][] = [[]];
-  // Dimensions   :: Size taken on grid (for computing collisions)
   dimensions: Vector = [1, 1];
-  // DrawSize     :: Size to draw
   drawSize = 1;
+  hp = 75;
+  maxHp = 100;
 
   constructor(public game: Game) {}
 
@@ -62,11 +60,10 @@ export class Player extends ActorBase {
   viewRadius = 8;
 
   viewCircle: Vector[] = [];
-  lightLevels: number[] = [0, 0.1, 0.2, 0.4, 0.6];
+  lightLevels: number[] = [0, 0.2, 0.6, 0.6];
 
   constructor(game: Game) {
     super(game);
-
     this.viewCircle = getCirclePoints(this.viewRadius);
   }
 
