@@ -36,6 +36,7 @@ export type DrawTileOptions = {
   size?: number,
   scaleToCurrentGridSize?: boolean
   darken?: number;
+  char?: string;
 }
 
 const darkenRGBA = ([r, g, b, a]: Color, amount: number): Color => {
@@ -180,7 +181,7 @@ export class Renderer {
     this.buffers[layer].unshift({
       pos: scaled,
       gridPos: pos,
-      char,
+      char: opts?.char ?? char,
       color: fgColor,
       background: bgColor,
       draw: true,

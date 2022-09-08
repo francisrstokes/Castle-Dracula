@@ -1,5 +1,6 @@
 import { DOWN, Game, Layers, LEFT, RIGHT, Tile, UP, vAdd, vDist, Vector, vEqual, vSqDist, vSub } from "./engine";
 import { Level } from "./Level";
+import { red } from "./palette";
 import { Scene } from "./Scene";
 import { playArea } from "./ui";
 
@@ -56,12 +57,12 @@ const getCirclePoints = (radius: number) => {
 }
 
 export class Player extends ActorBase {
-  private tile = Tile.from('@', [255, 0, 0, 1]);
+  private tile = Tile.from('@', red[6]);
   tiles = [[this.tile]];
   viewRadius = 8;
 
   viewCircle: Vector[] = [];
-  lightLevels: number[] = [0, 0.1, 0.2, 0.4, 0.6];//, 0.80];
+  lightLevels: number[] = [0, 0.1, 0.2, 0.4, 0.6];
 
   constructor(game: Game) {
     super(game);

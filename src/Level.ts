@@ -1,38 +1,22 @@
-import { Game, Layers, Renderer, Tile, vAdd, vContains, vDist, vector, Vector, vEqual, vInZeroedBounds, vKey, vMul, vMutAdd, vObj, vSqDist, vSub, vTaxiDist } from "./engine";
+import { Game, Layers, Renderer, Tile, vAdd, vContains, vDist, vector, Vector, vEqual, vInZeroedBounds, vKey, vMul, vObj, vSub, vTaxiDist } from "./engine";
 import { Player } from "./Player";
 import { Random } from "./Random";
 import { GridTile, Scene } from "./Scene";
-import * as K from 'kandinsky-js';
 import { Room, Grid, Region, Exit, ConnectableEdges, Cardinal, RoomConnection, getGridNeighbourCount, cardinals, getBoundsOfGrid, findRegionsInGrid, flood, getOppositeCardinal, directions } from "./dungeon-utilities";
 import { array, mapRange } from "./util";
 
 import {AStarFinder} from 'astar-typescript';
-import { playArea } from "./ui";
+import { descriptionArea, playArea } from "./ui";
+import { alpha, gray, noColor, red, yellow } from "./palette";
+import { environment as E } from "./environment";
 
-const WallTile = Tile.from('#', [0x60, 0x60, 0x60, 1], [0xff, 0xff, 0xff, 0.9]);
-const DoorTile = Tile.from('+', [0xb0, 0xb0, 0xb0, 1], [0xee, 0x10, 0x10, 0.7]);
-const FloorTile = Tile.from('.', [0xff, 0xff, 0xff, 1], [0xff, 0xff, 0xff, 0.1]);
-const DebugTile = Tile.from(' ', [0xff, 0xff, 0xff, 0], [0x00, 0xff, 0x00, 0.5]);
-const HighlightTile = Tile.from('*', [0x00, 0xff, 0xff, 1], [0xff, 0xff, 0xff, 0.5]);
-const PathTile = Tile.from(' ', [0, 0, 0, 0], [0xff, 0xff, 0x00, 0.5]);
+const PathTile = Tile.from(' ', noColor, alpha(yellow[7], 0.5));
 
-const outOfViewDarken = 0.75;
-const WallTileOutOfView = Tile.from('#',
-  [...K.darkenRgb(outOfViewDarken, [0x60, 0x60, 0x60]), 1],
-  [...K.darkenRgb(outOfViewDarken, [0xff, 0xff, 0xff]), 0.9]
-);
-const FloorTileOutOfView = Tile.from('.',
-  [...K.darkenRgb(outOfViewDarken, [0xff, 0xff, 0xff]), 1],
-  [...K.darkenRgb(outOfViewDarken, [0xff, 0xff, 0xff]), 0.1]
-);
-
-
-WallTile.addProperties(['solid', 'wall']);
 
 const cloneRoom = (room: Room): Room => {
   const tiles = room.tiles.map<GridTile>(t => ({
     position: t.position.slice() as Vector,
-    tile: t.tile,
+    env: t.env,
     zPos: t.zPos
   }));
   const connectableEdges: ConnectableEdges = {
@@ -113,9 +97,8 @@ const findOutline = (points: Vector[], grid?: Grid, bounds?: Vector): Vector[] =
 
     if (vInZeroedBounds(upper, v) && checkGrid[v[1]][v[0]] === 1) {
       seen[key] = true;
-      //  seen.push(v);
       cardinals.forEach(d => outlineFill(vAdd(v, d), v));
-    } else if (pv && !seenOutline[pvKey]) {// && !vContains(outline, pv)) {
+    } else if (pv && !seenOutline[pvKey]) {
       outline.push(pv);
       seenOutline[pvKey] = true;
     }
@@ -305,6 +288,7 @@ export class Level extends Scene {
 
   private showComputedPath = false;
   private pathTarget = vector();
+  private pointedTile = vector();
   private computedPath: Vector[] = [];
 
   private autoMove: Automove = {
@@ -334,7 +318,7 @@ export class Level extends Scene {
     while (!startPoint) {
       const gridTile = this.random.choose(this.rooms).tiles.find(gt => {
         const lt = this.level[gt.position[1]][gt.position[0]];
-        return lt && lt.gridTile.tile === FloorTile;
+        return lt && lt.gridTile.env.tile === E.Floor.tile;
       });
       if (gridTile) {
         startPoint = gridTile.position;
@@ -376,9 +360,9 @@ export class Level extends Scene {
 
     const tiles: GridTile[] = points.map(p => ({
       position: p,
-      tile: vContains(outline, p)
-        ? WallTile
-        : FloorTile,
+      env: vContains(outline, p)
+        ? E.Wall
+        : E.Floor,
       zPos: Layers.BG
     }));
 
@@ -417,7 +401,7 @@ export class Level extends Scene {
 
     const tiles: GridTile[] = points.map(p => ({
       position: p,
-      tile: vContains(outline, p) ? WallTile : FloorTile,
+      env: vContains(outline, p) ? E.Wall : E.Floor,
       zPos: Layers.BG
     }));
 
@@ -539,9 +523,9 @@ export class Level extends Scene {
       connectableEdges,
       tiles: points.map(p => ({
         position: p,
-        tile: vContains(outline, p)
-          ? WallTile
-          : FloorTile,
+        env: vContains(outline, p)
+          ? E.Wall
+          : E.Floor,
         zPos: Layers.BG
       }))
     };
@@ -676,8 +660,8 @@ export class Level extends Scene {
             // Turn walls into doors
             const roomDoor = room.tiles.find(t => vEqual(t.position, exitPosition));
             const targetDoor = targetRoom.tiles.find(t => vEqual(t.position, exitPosition));
-            if (roomDoor) roomDoor.tile = DoorTile;
-            if (targetDoor) targetDoor.tile = DoorTile;
+            if (roomDoor) roomDoor.env = E.Door;
+            if (targetDoor) targetDoor.env = E.Door;
 
             // Record the connection
             this.connections.push({
@@ -765,7 +749,7 @@ export class Level extends Scene {
 
           if (lt) {
             // While we're here, we can also check if this is a wall
-            if (lt.gridTile.tile === WallTile) {
+            if (lt.gridTile.env === E.Wall) {
               wallCount++;
               wallIndices.push(i);
             }
@@ -790,14 +774,14 @@ export class Level extends Scene {
               if (!lt) {
                 this.level[y][x] = {
                   gridTile: {
-                    tile: FloorTile,
+                    env: E.Floor,
                     position: [x, y],
                     zPos: Layers.BG
                   },
                   roomIndices: [roomA, roomB]
                 }
               } else {
-                lt.gridTile.tile = FloorTile;
+                lt.gridTile.env = E.Floor;
                 lt.roomIndices = [roomA, roomB];
               }
             })
@@ -817,7 +801,7 @@ export class Level extends Scene {
 
       const lt = this.level[v[1]][v[0]];
       if (lt) {
-        if (lt.gridTile.tile === FloorTile || lt.gridTile.tile === DoorTile) {
+        if (lt.gridTile.env === E.Floor || lt.gridTile.env === E.Door) {
           for (const c of directions) {
             findFloorsNextToVoids(vAdd(c, v), v);
           }
@@ -829,7 +813,7 @@ export class Level extends Scene {
     const startPoint = this.rooms[0].tiles
       .find(gt => {
         const lt = this.level[gt.position[1]][gt.position[0]];
-        return lt && lt.gridTile.tile === FloorTile;
+        return lt && lt.gridTile.env === E.Floor;
       })
       ?.position ?? [0, 0];
     findFloorsNextToVoids(startPoint, [-1, -1]);
@@ -842,7 +826,7 @@ export class Level extends Scene {
           this.level[oy][ox] = {
             gridTile: {
               position: [ox, oy],
-              tile: WallTile,
+              env: E.Wall,
               zPos: Layers.BG
             },
             roomIndices: []
@@ -858,7 +842,7 @@ export class Level extends Scene {
     if (y <= this.level.length - 1 && x <= this.level[0].length - 1) {
       const lt = this.level[y][x];
       if (lt) {
-        return lt.gridTile.tile;
+        return lt.gridTile.env.tile;
       }
     }
     return null;
@@ -875,57 +859,84 @@ export class Level extends Scene {
     return null;
   }
 
+  private renderPlayerVisual() {
+    const circleAroundPlayer = this.player.viewCircle.map(v => vAdd(v, this.player.position));
+    for (const p of circleAroundPlayer) {
+      const levelTile = this.getLevelTileAt(p);
+      if (levelTile) {
+        this.levelSeen.set(levelTile.gridTile.position, levelTile.gridTile);
+
+        const dist = vDist(this.player.position, p);
+        const lightIndex = Math.floor(mapRange([0, this.player.viewRadius], [0, this.player.lightLevels.length-1], dist));
+        this.renderer.drawTile(levelTile.gridTile.env.tile, levelTile.gridTile.zPos, playArea.translate(levelTile.gridTile.position), {
+          darken: this.player.lightLevels[lightIndex]
+        });
+      }
+    }
+  }
+
+  private renderLevelSeen() {
+    this.levelSeen.forEach(gridTile => {
+      this.renderer.drawTile(gridTile.env.tile, gridTile.zPos, playArea.translate(gridTile.position), {
+        darken: 0.85
+      });
+    });
+  }
+
+  private renderPath() {
+    if (this.showComputedPath) {
+      this.computedPath.forEach(v => {
+        this.renderer.drawTile(PathTile, Layers.HUD, playArea.translate(v));
+      });
+    }
+  }
+
+  private renderTileDescription() {
+    const DescriptionTile = Tile.from(' ', gray[7], red[0]);
+    let description = '---';
+
+    if (this.showComputedPath) {
+      if (vContains([...this.levelSeen.keys()], this.pointedTile)) {
+        const lt = this.getLevelTileAt(this.pointedTile);
+        if (lt) {
+          description = lt.gridTile.env.description;
+        }
+      } else {
+        description = 'This area cannot be seen clearly';
+      }
+    } else {
+      const lt = this.getLevelTileAt(this.player.position);
+      if (lt) {
+        description = lt.gridTile.env.description;
+      }
+    }
+
+    array(descriptionArea.dimensions[1], y => array<Vector>(descriptionArea.dimensions[0], x => [x, y]))
+    .flat(1)
+    .forEach((v, i) => {
+      const char = (i > 0 && i <= description.length) ? description[i-1] : ' ';
+      this.renderer.drawTile(DescriptionTile, Layers.BG, descriptionArea.translate(v), { char })
+    });
+  }
+
   render(frame: number): void {
     const {renderer} = this;
 
     const debug = false;
 
-    if (debug) {
+    if (!debug) {
+      this.renderPlayerVisual();
+      this.renderLevelSeen();
+      this.renderPath();
+      this.renderTileDescription();
+    } else {
       this.level.forEach(row => {
         row.forEach(lt => {
           if (lt) {
-            renderer.drawTile(lt.gridTile.tile, lt.gridTile.zPos, playArea.translate(lt.gridTile.position));
+            renderer.drawTile(lt.gridTile.env.tile, lt.gridTile.zPos, playArea.translate(lt.gridTile.position));
           }
         });
       });
-    } else {
-      const circleAroundPlayer = this.player.viewCircle.map(v => vAdd(v, this.player.position));
-      for (const p of circleAroundPlayer) {
-        const levelTile = this.getLevelTileAt(p);
-        if (levelTile) {
-          this.levelSeen.set(levelTile.gridTile.position, levelTile.gridTile);
-
-          const dist = vDist(this.player.position, p);
-          const lightIndex = Math.floor(mapRange([0, this.player.viewRadius], [0, this.player.lightLevels.length-1], dist));
-          renderer.drawTile(levelTile.gridTile.tile, levelTile.gridTile.zPos, playArea.translate(levelTile.gridTile.position), {
-            darken: this.player.lightLevels[lightIndex]
-          });
-        }
-      }
-
-      this.levelSeen.forEach(gridTile => {
-        this.renderer.drawTile(gridTile.tile, gridTile.zPos, playArea.translate(gridTile.position), {
-          darken: 0.85
-        });
-      });
-
-      if (this.showComputedPath) {
-        this.computedPath.forEach(v => {
-          this.renderer.drawTile(PathTile, Layers.HUD, playArea.translate(v));
-        })
-      }
-
-      this.debugDrawBuffer.forEach(v => {
-        renderer.drawTile(HighlightTile, Layers.HUD, playArea.translate(v));
-      });
-
-      // if (this.getGame().input.mouseIsDown()) {
-      //   this.level.forEach(row => row.forEach(lt => {
-      //     if (lt) {
-      //       this.renderer.drawTile(lt.gridTile.tile, lt.gridTile.zPos, playArea.translate(lt.gridTile.position));
-      //     }
-      //   }))
-      // }
     }
 
     this.renderer.commit();
@@ -947,19 +958,19 @@ export class Level extends Scene {
     if (input.mouseMoved()) {
       // Which tile is the mouse pointed at
       const scaleV: Vector = [1/(this.renderer.getTileSize() * 0.5), 1/this.renderer.getTileSize()];
-      let nextTarget = vMul(input.mousePositon(), scaleV);
-      nextTarget[0] = Math.floor(nextTarget[0]);
-      nextTarget[1] = Math.floor(nextTarget[1]);
+      this.pointedTile = vMul(input.mousePositon(), scaleV);
+      this.pointedTile[0] = Math.max(0, Math.floor(this.pointedTile[0]));
+      this.pointedTile[1] = Math.max(0, Math.floor(this.pointedTile[1]) - 1);
 
-      if (vInZeroedBounds(this.gridBounds, nextTarget)) {
-        this.pathTarget = nextTarget;
+      if (vInZeroedBounds(this.gridBounds, this.pointedTile)) {
+        this.pathTarget = this.pointedTile;
       }
 
       // Compute the path
       const searchGrid = this.level.map(row => row.map(lt => {
         if (!lt) return 1;
         if (!this.levelSeen.has(lt.gridTile.position)) return 1;
-        if (lt.gridTile.tile.hasProperty('solid')) return 1;
+        if (lt.gridTile.env.tile.hasProperty('solid')) return 1;
 
         return 0;
       }));
@@ -992,7 +1003,7 @@ export class Level extends Scene {
 
       const lt = this.getLevelTileAt(nextPosition);
       if (lt) {
-        if (!lt.gridTile.tile.hasProperty('solid')) {
+        if (!lt.gridTile.env.tile.hasProperty('solid')) {
           this.player.position = nextPosition;
         }
       }
@@ -1009,7 +1020,7 @@ export class Level extends Scene {
         if (nextPosition) {
           const lt = this.getLevelTileAt(nextPosition);
           if (lt) {
-            if (!lt.gridTile.tile.hasProperty('solid')) {
+            if (!lt.gridTile.env.tile.hasProperty('solid')) {
               this.player.position = nextPosition;
             } else {
               invalidMove = true;

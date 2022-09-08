@@ -29,6 +29,8 @@ export const cyan = linearGradientA(PaletteSteps, hex2rgb('#002627'), hex2rgb('#
 export const purple = linearGradientA(PaletteSteps, hex2rgb('#270024'), hex2rgb('#ff25ff')) as Palette;
 export const brown = linearGradientA(PaletteSteps, hex2rgb('#271000'), hex2rgb('#694125')) as Palette;
 
+export const noColor = color(0, 0, 0, 0);
+
 export const allColors = {
   gray,
   red,
@@ -37,5 +39,5 @@ export const allColors = {
   yellow,
   cyan,
   purple,
-  brown
+  brown,
 };

@@ -7,11 +7,11 @@
 // Each Game Scene can include things like a HUD, and maybe standardise things like
 // camera
 
-import { Game, Layers, Renderer, Tile, Vector } from "./engine"
-import * as K from 'kandinsky-js';
+import { Game, Layers, Vector } from "./engine"
+import { EnvironmentalElement } from "./environment";
 
 export type GridTile = {
-  tile: Tile,
+  env: EnvironmentalElement,
   position: Vector,
   zPos: Layers
 }
