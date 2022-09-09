@@ -311,7 +311,6 @@ export class Level extends Scene {
 
     this.gridBounds = vSub(playArea.dimensions, [1, 1]);
 
-    debugger;
     this.procgen(areaSize);
 
     let startPoint: Vector | null = null;

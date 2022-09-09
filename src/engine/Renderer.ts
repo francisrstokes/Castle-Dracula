@@ -101,10 +101,7 @@ export class Renderer {
             this.drawRect(background, pos, [size/2, size]);
           }
 
-          if (this.size !== size) {
-            this.setTileSize(size);
-          }
-
+          this.setTileSize(size);
           this.setFillStyle(color);
           this.ctx.fillText(char, pos[0], pos[1]);
         }
@@ -120,30 +117,24 @@ export class Renderer {
 
   popStyle() {
     const popped = this.styleStack.pop();
-
     if (popped) {
       for (const key of pushProps) {
         (this.ctx as any)[key] = (popped as any)[key];
       }
     }
-
-    // if (popped) {
-    //   for (let [k, v] of Object.entries(popped)) {
-    //     (this.ctx as any)[k] = v;
-    //   }
-    // }
-    // if (popped) {
-    //   Object.assign(this.ctx, popped);
-    // } else {
-    //   throw new RangeError(`No styles to pop in the stack`);
-    // }
   }
 
-  setTileSize(size: number) {
-    if (size !== this.size) {
-      this.size = size;
-      this.ctx.font = `${this.size}px ${this.font}`;
-    }
+  setTileSize(size: number, force = false) {
+    if (force || size !== this.size)
+    this.size = size;
+    this.ctx.font = `${this.size}px ${this.font}`;
+  }
+
+  resizeCanvas([w, h]: Vector) {
+    const canvas = this.getCanvas();
+    canvas.width = w;
+    canvas.height = h;
+    this.ctx.textBaseline = 'top';
   }
 
   getTileSize() {
