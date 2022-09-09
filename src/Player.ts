@@ -1,42 +1,8 @@
-import { DOWN, Game, Layers, LEFT, RIGHT, Tile, UP, vAdd, vDist, Vector, vEqual, vSqDist, vSub } from "./engine";
+import { ActorBase } from "./Actor";
+import { DOWN, Game, Layers, LEFT, RIGHT, Tile, UP, vAdd, vDist, Vector, vSub } from "./engine";
 import { Level } from "./Level";
 import { red } from "./palette";
-import { Scene } from "./Scene";
 import { playArea } from "./ui";
-
-export abstract class ActorBase {
-  position: Vector = [2, 2];
-  tiles: Tile[][] = [[]];
-  dimensions: Vector = [1, 1];
-  drawSize = 1;
-  hp = 75;
-  maxHp = 100;
-
-  constructor(public game: Game) {}
-
-  collides(actor: ActorBase) {
-    const [ax, ay] = this.position;
-    const [aw, ah] = this.dimensions;
-    const [bx, by] = actor.position;
-    const [bw, bh] = actor.dimensions;
-
-    const axw = ax + aw;
-    const ayh = ay + ah;
-    const bxw = bx + bw;
-    const byh = by + bh;
-
-    return (
-         (bx >= ax && bx <= axw)    && (by >= ay && by <= ayh)
-      || (bxw >= ax && bxw <= axw)  && (by >= ay && by <= ayh)
-      || (bx >= ax && bx <= axw)    && (byh >= ay && byh <= ayh)
-      || (bxw >= ax && bxw <= axw)  && (byh >= ay && byh <= ayh)
-    );
-  }
-
-  abstract render(frame: number): void;
-  abstract onBeforeCommit(frame: number): void;
-  abstract update(frame: number, currentScene: Scene): void;
-}
 
 const getCirclePoints = (radius: number) => {
   const origin: Vector = [radius, radius];
