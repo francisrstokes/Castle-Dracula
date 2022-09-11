@@ -37,6 +37,10 @@ export const vInZeroedBounds = (upper: Vector, v: Vector) => vInBounds([0, 0], u
 export const vContains = (a: Vector[], v: Vector) => a.some(v2 => vEqual(v, v2));
 export const vObj = ([x, y]: Vector) => ({ x, y });
 export const vKey = ([x, y]: Vector) => x + ',' + y;
+export const vFromKey = (key: string): Vector => {
+  const ks = key.split(',');
+  return [Number(ks[0]), Number(ks[1])];
+};
 
 export const LEFT: Vector   = [-1, 0];
 export const RIGHT: Vector  = [1, 0];

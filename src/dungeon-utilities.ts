@@ -124,3 +124,18 @@ export const findRegionsInGrid = (grid: Grid): Vector[][] => {
   return regions;
 }
 
+export const findMaxWidthAndHeight = (points: Vector[]): Vector => {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
+  for (const [x, y] of points) {
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+  }
+
+  return [maxX - minX, maxY - minY];
+};

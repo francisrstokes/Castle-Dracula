@@ -1,8 +1,8 @@
-import { Game, Layers, Renderer, Tile, vAdd, vContains, vDist, vector, Vector, vEqual, vInZeroedBounds, vKey, vMul, vObj, vSub, vTaxiDist } from "./engine";
+import { Color, Game, Layers, Renderer, Tile, vAdd, vContains, vDist, vector, Vector, vEqual, vFromKey, vInZeroedBounds, vKey, vMul, vObj, vSub, vTaxiDist } from "./engine";
 import { Player } from "./Player";
 import { Random } from "./Random";
 import { GridTile, Scene } from "./Scene";
-import { Room, Grid, Region, Exit, ConnectableEdges, Cardinal, RoomConnection, getGridNeighbourCount, cardinals, getBoundsOfGrid, findRegionsInGrid, flood, getOppositeCardinal, directions } from "./dungeon-utilities";
+import { Room, Grid, Region, Exit, ConnectableEdges, Cardinal, RoomConnection, getGridNeighbourCount, cardinals, getBoundsOfGrid, findRegionsInGrid, flood, getOppositeCardinal, directions, findMaxWidthAndHeight } from "./dungeon-utilities";
 import { array, mapRange } from "./util";
 
 import {AStarFinder} from 'astar-typescript';
@@ -503,15 +503,11 @@ export class Level extends Scene {
       return this.generateBiteRoom();
     }
 
-    const outlineGrid = pointsToGrid(outline);
-    // const canConnectToPoint = (v: Vector) => getGridNeighbourCount(v, outlineGrid, cardinals) >= 2;
-    const canConnectToPoint = (v: Vector) => true;
-
     const connectableEdges: ConnectableEdges = {
-      [Cardinal.North]: findNorthernPoints(outline).filter(canConnectToPoint),
-      [Cardinal.South]: findSouthernPoints(outline).filter(canConnectToPoint),
-      [Cardinal.East]: findEasternPoints(outline).filter(canConnectToPoint),
-      [Cardinal.West]: findWesternPoints(outline).filter(canConnectToPoint),
+      [Cardinal.North]: findNorthernPoints(outline),
+      [Cardinal.South]: findSouthernPoints(outline),
+      [Cardinal.East]: findEasternPoints(outline),
+      [Cardinal.West]: findWesternPoints(outline),
     };
 
     return {
@@ -560,6 +556,112 @@ export class Level extends Scene {
         };
       }
     });
+  }
+
+  private indexLevel() {
+    const startPos = vector();
+    position_search:
+    for (let y = 0; y < this.level.length; y++) {
+      for (let x = 0; x < this.level[0].length; x++) {
+        const lt = this.getLevelTileAt([x, y]);
+        if (lt && lt.gridTile.env === E.Floor) {
+          startPos[0] = x;
+          startPos[1] = y;
+          break position_search;
+        }
+      }
+    }
+
+    const rooms: Room[] = [];
+    const seen: Record<string, true> = {};
+    const doors: Record<string, true> = {};
+
+    let currentRoomFloors: Vector[] = [];
+    let currentRoomWalls: Vector[] = [];
+
+    let searchStack: Vector[] = [startPos];
+
+    const floodRoom = (pos: Vector, startingDoor = false) => {
+      const key = vKey(pos);
+      if (key in seen && !(key in doors)) return;
+      seen[key] = true;
+
+      const lt = this.getLevelTileAt(pos);
+
+      if (lt) {
+        if (lt.gridTile.env === E.Wall) {
+          currentRoomWalls.push(pos);
+        } else if (lt.gridTile.env === E.Floor) {
+          currentRoomFloors.push(pos);
+          for (const dir of directions) {
+            floodRoom(vAdd(pos, dir));
+          }
+        } else if (lt.gridTile.env === E.Door) {
+          if (!(key in doors)) {
+            searchStack.push(pos);
+            doors[key] = true;
+          } else if (startingDoor) {
+            for (const dir of directions) {
+              floodRoom(vAdd(pos, dir));
+            }
+          }
+        }
+      }
+    };
+
+    // Create the room index
+    while (searchStack.length) {
+      const p = searchStack.pop();
+      if (p) {
+        floodRoom(p, true);
+        if (currentRoomFloors.length + currentRoomWalls.length === 0) continue;
+
+        const allTiles = [...currentRoomWalls, ...currentRoomFloors];
+        const maxes = findMaxWidthAndHeight(allTiles);
+        rooms.push({
+          connectableEdges: { North: [], South: [], East: [], West: [] },
+          exits: [],
+          maxWidth: maxes[0],
+          maxHeight: maxes[1],
+          outline: currentRoomWalls,
+          tiles: allTiles.map(v => (this.level[v[1]][v[0]] as LevelGridValue).gridTile)
+        });
+        currentRoomFloors = [];
+        currentRoomWalls = [];
+      }
+    }
+    this.rooms = rooms;
+
+    // Create the connection index
+    const connections: RoomConnection[] = [];
+    Object.keys(doors).forEach(k => {
+      const v = vFromKey(k);
+      const neighbours = cardinals
+        .map(c => this.getLevelTileAt(vAdd(v, c)))
+        .filter(x => x !== null)
+        .map(lt => {
+          if (lt) {
+            const index = this.rooms.findIndex(room => vContains(room.tiles.map(t => t.position), lt.gridTile.position));
+            return index;
+          }
+          return 0 as never;
+        });
+
+      const roomPairs = [...new Set(neighbours)];
+      if (roomPairs[0] !== roomPairs[1]) {
+        connections.push({
+          exitPosition: v,
+          roomA: this.rooms[roomPairs[0]],
+          roomAIndex: roomPairs[0],
+          roomB: this.rooms[roomPairs[1]],
+          roomBIndex: roomPairs[1],
+        });
+      } else {
+        // If this door only connects this room to this room, it can be removed
+        this.level[v[1]][v[0]] = null;
+      }
+    });
+    this.connections = connections;
   }
 
   private procgen(area = 2500) {
@@ -834,6 +936,10 @@ export class Level extends Scene {
       })
     });
 
+    // Take a moment to reindex the level (recompute the rooms and doors)
+    // This removes redundant doors, and merges rooms that were previously
+    // considered separate
+    this.indexLevel();
     console.timeEnd('procgen');
   }
 
@@ -966,12 +1072,15 @@ export class Level extends Scene {
       this.renderTileDescription();
       this.renderInfoArea();
     } else {
-      this.level.forEach(row => {
-        row.forEach(lt => {
-          if (lt) {
-            renderer.drawTile(lt.gridTile.env.tile, lt.gridTile.zPos, playArea.translate(lt.gridTile.position));
-          }
+      this.rooms.forEach(room => {
+        room.tiles.forEach(gt => {
+          renderer.drawTile(gt.env.tile, gt.zPos, playArea.translate(gt.position), {
+          });
         });
+      });
+
+      this.connections.forEach(connection => {
+        renderer.drawTile(E.Door.tile, Layers.BG, playArea.translate(connection.exitPosition));
       });
     }
 
