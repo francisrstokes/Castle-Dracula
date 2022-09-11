@@ -1,5 +1,5 @@
-import { Game, Tile, Vector } from "./engine";
-import { Scene } from "./Scene";
+import { Game, Tile, Vector } from "../engine";
+import { Scene } from "../Scene";
 
 export abstract class ActorBase {
   position: Vector = [2, 2];
