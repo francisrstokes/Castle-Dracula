@@ -1,3 +1,4 @@
+import { Layers } from "./constants";
 import { EventProvider } from "./EventProvider";
 import { Game } from "./Game";
 import { Tile } from "./Tile";
@@ -5,6 +6,7 @@ import { vAdd, Vector } from "./Vector";
 
 export type AnimationTimelineElement = {
   pos: Vector;
+  zPos: Layers;
   tile: Tile;
 }[]
 
@@ -55,9 +57,9 @@ export class Animation<G extends Game> extends EventProvider<AnimationEvents> {
       this.state = Math.floor(this.frame / (this.animationLength / (this.timeline.length * this.times))) % this.timeline.length;
 
       const frame = this.timeline[this.state];
-      frame.forEach(({tile, pos}) => {
+      frame.forEach(({tile, zPos, pos}) => {
         const screenPos = tileToScreen(vAdd(pos, this.pos));
-        game.renderer.drawTile(tile, screenPos);
+        game.renderer.drawTile(tile, zPos, screenPos);
       });
 
       if (!this.isComplete) {
