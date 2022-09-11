@@ -2,7 +2,7 @@ import { Layers, vAdd, vContains, vDist, Vector, vEqual, vInZeroedBounds } from 
 import { Random } from "../Random";
 import { array } from "../util";
 import {environment as E} from '../environment'
-import { Grid, Room, findOutline, cardinals, findRegionsInGrid, findLargestRegionIndex, pointsToGrid, flood, Cardinal, findNorthernPoints, findSouthernPoints, findEasternPoints, findWesternPoints, ConnectableEdges, generateExitsFromConnectableEdges, getGridNeighbourCount } from "./dungeon-utilities";
+import { Grid, Room, findOutline, cardinals, findRegionsInGrid, findLargestRegionIndex, pointsToGrid, flood, Cardinal, findNorthernPoints, findSouthernPoints, findEasternPoints, findWesternPoints, ConnectableEdges, generateExitsFromConnectableEdges, getGridNeighbourCount, Exit } from "./dungeon-utilities";
 import { GridTile } from "../Scene";
 
 export const generateBiteRoom = (random: Random): Room => {
@@ -203,4 +203,57 @@ export const generateRectRoom = (random: Random): Room => {
     maxHeight: height,
     maxWidth: width
   };
+};
+
+const cloneRoom = (room: Room): Room => {
+  const tiles = room.tiles.map<GridTile>(t => ({
+    position: t.position.slice() as Vector,
+    env: t.env,
+    zPos: t.zPos
+  }));
+  const connectableEdges: ConnectableEdges = {
+    [Cardinal.East]: room.connectableEdges[Cardinal.East].map(v => v.slice() as Vector),
+    [Cardinal.West]: room.connectableEdges[Cardinal.West].map(v => v.slice() as Vector),
+    [Cardinal.North]: room.connectableEdges[Cardinal.North].map(v => v.slice() as Vector),
+    [Cardinal.South]: room.connectableEdges[Cardinal.South].map(v => v.slice() as Vector),
+  };
+  const exits: Exit[] = room.exits.map(e => ({ position: e.position.slice() as Vector, cardinal: e.cardinal }));
+  const outline: Vector[] = room.outline.map(v => v.slice() as Vector);
+
+  return {
+    connectableEdges,
+    exits,
+    tiles,
+    outline,
+    maxHeight: room.maxHeight,
+    maxWidth: room.maxWidth
+  }
+};
+
+export const translateRoom = (room: Room, offset: Vector): Room => {
+  const clone = cloneRoom(room);
+  clone.tiles.forEach(t => {
+    t.position = vAdd(t.position, offset);
+  });
+
+  clone.outline.map(v => vAdd(v, offset));
+  Object.values(clone.connectableEdges).forEach(vs => {
+    vs.forEach(v => {
+      v[0] += offset[0];
+      v[1] += offset[1];
+    });
+  });
+
+  clone.exits.forEach(e => {
+    e.position = vAdd(e.position, offset);
+  });
+  return clone;
+};
+
+export const generateRoom = (random: Random): Room => {
+  return random.choose([
+    generateCircleRoom,
+    generateRectRoom,
+    generateBiteRoom,
+  ])(random);
 };

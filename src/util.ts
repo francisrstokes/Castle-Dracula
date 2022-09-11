@@ -1,6 +1,8 @@
 import {RGB} from 'kandinsky-js'
 import { Color, Vector } from './engine'
 
+export type Nullable<T> = T | null;
+
 export const rgba = (rgb: RGB, alpha = 1): Color => [...rgb, alpha];
 
 export const array = <T>(length: number, genFn: (index: number) => T): T[] => (
