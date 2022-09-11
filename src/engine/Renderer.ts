@@ -37,6 +37,8 @@ export type DrawTileOptions = {
   scaleToCurrentGridSize?: boolean
   darken?: number;
   char?: string;
+  background?: Color;
+  color?: Color;
 }
 
 const darkenRGBA = ([r, g, b, a]: Color, amount: number): Color => {
@@ -126,9 +128,9 @@ export class Renderer {
 
   setTileSize(size: number, force = false) {
     if (force || size !== this.size) {
-    this.size = size;
-    this.ctx.font = `${this.size}px ${this.font}`;
-  }
+      this.size = size;
+      this.ctx.font = `${this.size}px ${this.font}`;
+    }
   }
 
   resizeCanvas([w, h]: Vector) {
@@ -162,8 +164,8 @@ export class Renderer {
     }
     scaled[0] *= 0.5;
 
-    let bgColor = background.slice() as Color;
-    let fgColor = color.slice() as Color;
+    let bgColor = opts?.background ?? background.slice() as Color;
+    let fgColor = opts?.color ?? color.slice() as Color;
 
     if (opts && opts.darken) {
       bgColor = darkenRGBA(bgColor, opts.darken);
