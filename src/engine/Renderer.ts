@@ -125,9 +125,10 @@ export class Renderer {
   }
 
   setTileSize(size: number, force = false) {
-    if (force || size !== this.size)
+    if (force || size !== this.size) {
     this.size = size;
     this.ctx.font = `${this.size}px ${this.font}`;
+  }
   }
 
   resizeCanvas([w, h]: Vector) {
