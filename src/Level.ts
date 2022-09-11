@@ -137,8 +137,8 @@ export class Level extends Scene {
     return fn(this.random);
   }
 
-  private positionExistsInAnyRoom([x, y]: Vector, exclude: number) {
-    const levelTile = this.level[y][x];
+  private positionExistsInAnyRoom(p: Vector, exclude: number) {
+    const levelTile = this.getLevelTileAt(p);
     return levelTile && !levelTile.roomIndices.includes(exclude);
   }
 
@@ -446,7 +446,7 @@ export class Level extends Scene {
         let wallCount = 0;
         let wallIndices: number[] = [];
         const onlyInSelectedRooms = line.every(([x, y], i) => {
-          const lt = this.level[y][x];
+          const lt = this.getLevelTileAt([x, y]);
 
           if (lt) {
             // While we're here, we can also check if this is a wall
@@ -471,7 +471,7 @@ export class Level extends Scene {
             line.splice(0, wallIndices[0]);
 
             line.forEach(([x, y]) => {
-              const lt = this.level[y][x];
+              const lt = this.getLevelTileAt([x, y]);
               if (!lt) {
                 this.level[y][x] = {
                   gridTile: {
@@ -545,7 +545,7 @@ export class Level extends Scene {
 
   getTileAt([x, y]: Vector) {
     if (y <= this.level.length - 1 && x <= this.level[0].length - 1) {
-      const lt = this.level[y][x];
+      const lt = this.getLevelTileAt([x, y]);
       if (lt) {
         return lt.gridTile.env.tile;
       }
