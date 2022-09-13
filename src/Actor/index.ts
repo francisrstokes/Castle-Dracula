@@ -1,5 +1,5 @@
 import { Game, Tile, Vector } from "../engine";
-import { Scene } from "../Scene";
+import { Level } from "../Level";
 
 export abstract class ActorBase {
   position: Vector = [2, 2];
@@ -9,6 +9,9 @@ export abstract class ActorBase {
 
   hp = 100;
   maxHp = 100;
+
+  strength = 1;
+  ac = 1;
 
   speed = 1;
   delay = 1;
@@ -36,6 +39,6 @@ export abstract class ActorBase {
 
   abstract render(frame: number): void;
   abstract onBeforeCommit(frame: number): void;
-  abstract update(frame: number, currentScene: Scene): void;
+  abstract update(frame: number, currentScene: Level): boolean;
 }
 

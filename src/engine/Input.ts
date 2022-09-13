@@ -17,6 +17,7 @@ export type MouseState = {
 
 export class Input {
   private keyStates: Record<string, KeyState> = {};
+  private anyKeyPressed = false;
   private mouseState: MouseState = {
     pressed: false,
     downThisFrame: false,
@@ -42,6 +43,7 @@ export class Input {
         this.keyStates[e.key].lock = true;
         this.keyStates[e.key].state = true;
         this.keyStates[e.key].downThisFrame = true;
+        this.anyKeyPressed = true;
       }
     };
 
@@ -119,6 +121,10 @@ export class Input {
     return !this.keyIsDown(key) && this.keyStates[key].upThisFrame;
   }
 
+  anyKeyPressedThisFrame() {
+    return this.anyKeyPressed;
+  }
+
   mouseIsDown() {
     return this.mouseState.pressed;
   }
@@ -148,6 +154,8 @@ export class Input {
       ks.downThisFrame = false;
       ks.upThisFrame = false;
     });
+    this.anyKeyPressed = false;
+
     this.mouseState.downThisFrame = false;
     this.mouseState.upThisFrame = false;
     this.mouseState.movedThisFrame = false;

@@ -1,5 +1,6 @@
 import { ActorBase } from "./Actor";
 import { DOWN, Game, Layers, LEFT, RIGHT, Tile, UP, vAdd, vDist, Vector, vSub } from "./engine";
+import { EnvProperty } from "./environment";
 import { Level } from "./Level";
 import { red } from "./palette";
 import { playArea } from "./ui";
@@ -28,6 +29,10 @@ export class Player extends ActorBase {
   viewCircle: Vector[] = [];
   lightLevels: number[] = [0, 0.2, 0.6, 0.6];
 
+  speed = 1.3;
+
+  inputLag = 5;
+
   constructor(game: Game) {
     super(game);
     this.viewCircle = getCirclePoints(this.viewRadius);
@@ -50,5 +55,21 @@ export class Player extends ActorBase {
     return this.position;
   }
 
-  update(frame: number, level: Level) {}
+  update(frame: number, level: Level) {
+    if (frame % this.inputLag === 0) {
+      const nextPosition = this.getNextPosition();
+      if (nextPosition !== this.position) {
+        // TODO: Ask the level if there is an actor at that position
+        // That would constitute an attack
+
+        const levelTile = level.getLevelTileAt(nextPosition);
+        if (levelTile && !levelTile.gridTile.env.tile.hasProperty(EnvProperty.Solid)) {
+          this.position = nextPosition;
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
 }

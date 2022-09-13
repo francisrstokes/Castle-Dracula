@@ -30,7 +30,6 @@ game.renderer.setTileSize(canvasSize[1] / gridSize[1]);
 game.renderer.setPositionAutoScaling(true);
 
 game.on('update', frame => {
-  playerObj.update(frame, level);
   level.update(frame);
 });
 game.on('draw', frame => {
