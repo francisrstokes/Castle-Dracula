@@ -103,6 +103,16 @@ const indexLevel = (level: LevelTileGrid): LevelData => {
         outline: currentRoomWalls,
         tiles: allTiles.map(v => (level[v[1]][v[0]] as LevelGridValue).gridTile)
       });
+
+      // Write the new room index into the level data for this grid tile
+      const roomIndex = rooms.length - 1;
+      allTiles.forEach(v => {
+        const lt = getLevelTileAt(v, level);
+        if (lt) {
+          lt.roomIndices = [roomIndex];
+        }
+      });
+
       currentRoomFloors = [];
       currentRoomWalls = [];
     }
