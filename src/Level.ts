@@ -5,7 +5,7 @@ import { GridTile, Scene } from "./Scene";
 import { array, mapRange, Nullable } from "./util";
 import { descriptionArea, infoArea, playArea } from "./ui";
 import { alpha, gray, noColor, red, yellow } from "./palette";
-import { environment as E } from "./environment";
+import { environment as E, EnvProperty } from "./environment";
 import { Room, Cardinal, RoomConnection } from "./PCG/dungeon-utilities";
 import { generateLevel, getLevelTileAt, LevelTileGrid } from "./PCG/level";
 import {AStarFinder} from 'astar-typescript';
@@ -224,7 +224,7 @@ export class Level extends Scene {
       const searchGrid = this.level.map(row => row.map(lt => {
         if (!lt) return 1;
         if (!this.levelSeen.has(lt.gridTile.position)) return 1;
-        if (lt.gridTile.env.tile.hasProperty('solid')) return 1;
+          if (lt.gridTile.env.tile.hasProperty(EnvProperty.Solid)) return 1;
 
         return 0;
       }));
@@ -274,7 +274,7 @@ export class Level extends Scene {
         if (nextPosition) {
           const lt = this.getLevelTileAt(nextPosition);
           if (lt) {
-            if (!lt.gridTile.env.tile.hasProperty('solid')) {
+              if (!lt.gridTile.env.tile.hasProperty(EnvProperty.Solid)) {
               this.player.position = nextPosition;
             } else {
               invalidMove = true;

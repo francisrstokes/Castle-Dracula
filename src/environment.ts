@@ -12,20 +12,31 @@ export enum Env {
   Floor = 'Floor',
 };
 
+export enum EnvProperty {
+  Wall = 'Wall',
+  Solid = 'Solid',
+  Door = 'Door',
+  Floor = 'Floor',
+}
+
 export const Wall: EnvironmentalElement = {
   tile: Tile
     .from('#', gray[2], gray[6])
-    .addProperties(['solid', 'wall']),
+    .addProperties([EnvProperty.Wall, EnvProperty.Solid]),
   description: 'A stone wall'
 };
 
 export const Door: EnvironmentalElement = {
-  tile: Tile.from('+', gray[6], brown[7]),
+  tile: Tile
+    .from('+', gray[6], brown[7])
+    .addProperties([EnvProperty.Door]),
   description: 'An intricately carved wooden door'
 };
 
 export const Floor: EnvironmentalElement = {
-  tile: Tile.from('.', gray[6], gray[1]),
+  tile: Tile
+    .from('.', gray[6], gray[1])
+    .addProperties([EnvProperty.Floor]),
   description: 'A speckled marble floor'
 };
 
