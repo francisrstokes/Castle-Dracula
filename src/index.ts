@@ -35,7 +35,6 @@ game.on('update', frame => {
 game.on('draw', frame => {
   game.renderer.clearBackground(gray[0]);
   level.render(frame);
-  playerObj.render(frame);
   renderMessageArea();
 });
 

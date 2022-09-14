@@ -130,7 +130,7 @@ export class Level extends Scene {
     return astar.findPath(vObj(position), vObj(this.player.position)) as Vector[];
   }
 
-  private renderPlayerVisual() {
+  private renderPlayerVisual(frame: number) {
     const circleAroundPlayer = this.player.viewCircle.map(v => vAdd(v, this.player.position));
     for (const p of circleAroundPlayer) {
       const levelTile = this.getLevelTileAt(p);
@@ -144,6 +144,8 @@ export class Level extends Scene {
         });
       }
     }
+
+    this.player.render(frame);
 
     const playerRoomIndex = this.getRoomIndexFromPosition(this.player.position);
     for (const actor of this.actors) {
@@ -240,7 +242,7 @@ export class Level extends Scene {
     const debug = false;
 
     if (!debug) {
-      this.renderPlayerVisual();
+      this.renderPlayerVisual(frame);
       this.renderLevelSeen();
       this.renderPath();
       this.renderTileDescription();
