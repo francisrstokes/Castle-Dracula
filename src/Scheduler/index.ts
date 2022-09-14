@@ -1,4 +1,4 @@
-import { ActorBase } from "./Actor";
+import { ActorBase } from "../Actor";
 import { PriorityQueue } from "./priority-queue";
 
 export class Scheduler {

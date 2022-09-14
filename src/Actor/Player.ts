@@ -1,9 +1,9 @@
-import { ActorBase } from "./Actor";
-import { DOWN, Game, Layers, LEFT, RIGHT, Tile, UP, vAdd, vDist, Vector, vSub } from "./engine";
-import { EnvProperty } from "./environment";
-import { Level } from "./Level";
-import { red } from "./palette";
-import { playArea } from "./ui";
+import { ActorBase } from ".";
+import { DOWN, Game, Layers, LEFT, RIGHT, Tile, UP, vAdd, vDist, Vector, vSub } from "../engine";
+import { EnvProperty } from "../environment";
+import { Level } from "../Level";
+import { red } from "../palette";
+import { playArea } from "../ui";
 
 const getCirclePoints = (radius: number) => {
   const origin: Vector = [radius, radius];

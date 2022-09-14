@@ -15,7 +15,7 @@ function createWindow() {
     autoHideMenuBar: true
   });
 
-  mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
+  mainWindow.loadFile(path.join(__dirname, '..', '..', 'dist', 'index.html'));
   mainWindow.on('closed', () => (mainWindow = null));
 
   ipcMain.on('set-size', (_event, width, height) => {

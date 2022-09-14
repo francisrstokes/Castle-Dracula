@@ -1,5 +1,5 @@
 import { Game, Layers, Tile, Vector, vFloor, vMul, vScale } from "./engine";
-import { Player } from "./Player";
+import { Player } from "./Actor/Player";
 import { Level } from "./Level";
 import { array } from "./util";
 import { gridSize, messageArea, pixelScale } from "./ui";

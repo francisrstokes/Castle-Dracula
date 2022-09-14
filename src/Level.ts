@@ -1,5 +1,5 @@
-import { Game, Layers, Renderer, Tile, vAdd, vContains, vDist, vector, Vector, vEqual, vInZeroedBounds, vMul, vObj, vSub } from "./engine";
-import { Player } from "./Player";
+import { Game, Layers, Renderer, Tile, vAdd, vContains, vDist, vector, Vector, vInZeroedBounds, vMul, vObj, vSub } from "./engine";
+import { Player } from "./Actor/Player";
 import { Random } from "./Random";
 import { GridTile, Scene } from "./Scene";
 import { array, mapRange } from "./util";
@@ -8,10 +8,10 @@ import { alpha, blue, gray, linearGradientA, noColor, red, yellow } from "./pale
 import { environment as E, EnvProperty } from "./environment";
 import { Room, RoomConnection } from "./PCG/dungeon-utilities";
 import { generateLevel, getLevelTileAt, LevelTileGrid } from "./PCG/level";
-import {AStarFinder} from 'astar-typescript';
 import { ActorBase } from "./Actor";
-import { Scheduler } from "./scheduler";
+import { Scheduler } from "./Scheduler";
 import { Enemy, exampleAI } from "./Actor/Enemy";
+import { AStarFinder } from 'astar-typescript';
 
 const PathTile = Tile.from(' ', noColor, alpha(yellow[7], 0.5));
 
