@@ -1,4 +1,4 @@
-import { ActorBase } from ".";
+import { Actor } from ".";
 import { DOWN, Game, Layers, LEFT, RIGHT, Tile, UP, vAdd, vDist, Vector, vSub } from "../engine";
 import { EnvProperty } from "../environment";
 import { Level } from "../Level";
@@ -21,7 +21,7 @@ const getCirclePoints = (radius: number) => {
   return points;
 }
 
-export class Player extends ActorBase {
+export class Player extends Actor {
   private tile = Tile.from('@', red[6]);
   tiles = [[this.tile]];
   viewRadius = 8;

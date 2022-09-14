@@ -8,7 +8,7 @@ import { alpha, blue, gray, linearGradientA, noColor, red, yellow } from "./pale
 import { environment as E, EnvProperty } from "./environment";
 import { Room, RoomConnection } from "./PCG/dungeon-utilities";
 import { generateLevel, getLevelTileAt, LevelTileGrid } from "./PCG/level";
-import { ActorBase } from "./Actor";
+import { Actor } from "./Actor";
 import { Scheduler } from "./Scheduler";
 import { Enemy, exampleAI } from "./Actor/Enemy";
 import { AStarFinder } from 'astar-typescript';
@@ -31,7 +31,7 @@ export class Level extends Scene {
   private level: LevelTileGrid;
   private gridBounds: Vector;
 
-  private actors: ActorBase[] = [];
+  private actors: Actor[] = [];
   private scheduler = new Scheduler();
 
   private debugDrawBuffer: Vector[] = [];

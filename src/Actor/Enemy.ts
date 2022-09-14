@@ -1,4 +1,4 @@
-import { ActorBase } from ".";
+import { Actor } from ".";
 import { Game, Layers, Tile, Vector, vEqual } from "../engine";
 import { EnvProperty } from "../environment";
 import { Level } from "../Level";
@@ -14,7 +14,7 @@ export type EnemyConfiguration = {
   updateAI: UpdateAIFunction;
 };
 
-export class Enemy extends ActorBase {
+export class Enemy extends Actor {
   name: string;
   description: string;
   speed: number;

@@ -1,7 +1,7 @@
 import { Game, Tile, Vector } from "../engine";
 import { Level } from "../Level";
 
-export abstract class ActorBase {
+export abstract class Actor {
   position: Vector = [2, 2];
   tiles: Tile[][] = [[]];
   dimensions: Vector = [1, 1];
@@ -18,7 +18,7 @@ export abstract class ActorBase {
 
   constructor(public game: Game) {}
 
-  collides(actor: ActorBase) {
+  collides(actor: Actor) {
     const [ax, ay] = this.position;
     const [aw, ah] = this.dimensions;
     const [bx, by] = actor.position;
