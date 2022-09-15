@@ -14,6 +14,7 @@ import { Enemy, exampleAI } from "./Actor/Enemy";
 import { AStarFinder } from 'astar-typescript';
 import { Bat } from "./Actor/enemies";
 import { Room } from "./PCG/room";
+import { MessageArea } from "./MessageArea";
 
 const PathTile = Tile.from(' ', noColor, alpha(yellow[7], 0.5));
 
@@ -56,7 +57,7 @@ export class Level extends Scene {
     timer: 0
   };
 
-  constructor(game: Game, random: Random, public player: Player) {
+  constructor(game: Game, random: Random, public player: Player, private messages: MessageArea) {
     super(game);
     this.renderer = game.renderer;
     this.random = random;
@@ -247,6 +248,7 @@ export class Level extends Scene {
       this.renderPath();
       this.renderTileDescription();
       this.renderInfoArea();
+      this.messages.render();
 
       if (this.showRooms) {
         const colors = linearGradientA(this.rooms.length, [255, 0, 0], [0, 0, 255], 0.2);
