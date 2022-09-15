@@ -1,13 +1,6 @@
 import { EventProvider } from "./EventProvider";
 
-export type SceneEvents<G> = {
-  load: G,
-  unload: G,
-  update: G,
-  draw: G,
-};
-
-export class Scene<G> extends EventProvider<SceneEvents<G>> {
+export class Scene<G> extends EventProvider {
   constructor() {
     super(true);
     this.load = this.load.bind(this);

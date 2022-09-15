@@ -7,16 +7,7 @@ import { Time } from "./Time";
 import { posToGridIndex } from "./util";
 import { vAdd, Vector, vScale } from "./Vector";
 
-export type GameEvents = {
-  beforeUpdate: number,
-  update: number,
-  beforeDraw: number,
-  draw: number,
-  beforeCommit: number,
-  frameComplete: number,
-}
-
-export class Game extends EventProvider<GameEvents> {
+export class Game extends EventProvider {
   renderer: Renderer;
   frames = 0;
   area: Area | null = null

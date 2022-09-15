@@ -10,11 +10,7 @@ export type AnimationTimelineElement = {
   tile: Tile;
 }[]
 
-type AnimationEvents = {
-  complete: number;
-}
-
-export class Animation<G extends Game> extends EventProvider<AnimationEvents> {
+export class Animation<G extends Game> extends EventProvider {
   timeline: AnimationTimelineElement[];
   animationLength: number;
   pos: Vector;

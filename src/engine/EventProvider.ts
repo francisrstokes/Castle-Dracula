@@ -1,24 +1,30 @@
-export class EventProvider<E> {
-  events: { [type in keyof E]?: (data: E[type]) => void } = {};
+export type EventCallback = (data: any) => void;
+
+export class EventProvider {
+  events: Record<string, EventCallback[]> = {};
   private bindEvents = false;
 
   constructor(bindEvents = true) {
     this.bindEvents = bindEvents;
   }
 
-  on<K extends keyof E>(type: K, cb: (data: E[K]) => void) {
+  on(type: string, cb: EventCallback) {
+    if (!this.events[type]) {
+      this.events[type] = [];
+    }
+
     if (this.bindEvents) {
-      this.events[type] = cb.bind(this);
+      this.events[type].push(cb.bind(this));
     } else {
-      this.events[type] = cb;
+      this.events[type].push(cb);
     }
   }
 
-  off<K extends keyof E>(type: K) {
-    delete this.events[type];
+  off(type: string, cb: EventCallback) {
+    this.events[type] = this.events[type].filter(ecb => ecb !== cb);
   }
 
-  trigger<K extends keyof E>(type: K, data: E[K]) {
-    this.events[type]?.(data);
+  trigger(type: string, data: any) {
+    this.events[type]?.forEach(cb => cb(data));
   }
 }
