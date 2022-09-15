@@ -16,9 +16,10 @@ export class Scheduler {
   }
 
   unload(actor: Actor) {
-    this.actorList = this.actorList.filter(a => a !== actor);
+    const newList = this.actorList.filter(a => a !== actor);
+    this.actorList = [];
     this.queue.clear();
-    this.loadActors(this.actorList);
+    this.loadActors(newList);
   }
 
   next() {

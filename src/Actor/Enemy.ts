@@ -100,7 +100,6 @@ export const exampleAI = (() => {
 
         if (vEqual(level.player.position, next)) {
           // Attack!
-          console.log('Going to attack state');
           state = State.Attack;
         } else {
           self.attemptMove(next, level);
@@ -113,10 +112,8 @@ export const exampleAI = (() => {
       case State.Attack: {
         const dist = vSqDist(level.player.position, self.position);
         if (dist !== 1) {
-          console.log(`dist was ${dist}`);
           state = State.MoveTowardPlayer;
         } else {
-          console.log(`Attacking...`);
           self.attack(level.player);
         }
       } break;

@@ -1,4 +1,5 @@
 import { Game, Tile, Vector } from "../engine";
+import { GameEvent, GameEventData } from "../events";
 import { Level } from "../Level";
 import { Random } from "../Random";
 import { Dice, Nullable } from "../util";
@@ -66,15 +67,12 @@ export abstract class Actor {
       const wasFatal = defender.takeDamage(totalDamage);
 
       if (wasFatal) {
-        // TODO: Trigger an event if this was a kill
-        console.log(`${this.name} killed ${defender.name} with a fatal blow`);
+        this.game.trigger(GameEvent.ActorKilled, {attacker: this, defender} as GameEventData[GameEvent.ActorKilled]);
       } else {
-        // TODO: Trigger an event that there was a hit
-        console.log(`${this.name} hit ${defender.name} for ${totalDamage} damage`);
+        this.game.trigger(GameEvent.ActorHit, {attacker: this, defender, damage: totalDamage} as GameEventData[GameEvent.ActorHit]);
       }
     } else {
-      // TODO: Trigger an event that this hit did not succeed
-      console.log(`${this.name} missed ${defender.name}`);
+      this.game.trigger(GameEvent.ActorMissed, {attacker: this, defender} as GameEventData[GameEvent.ActorMissed]);
     }
   }
 

@@ -15,6 +15,7 @@ import { AStarFinder } from 'astar-typescript';
 import { Bat } from "./Actor/enemies";
 import { Room } from "./PCG/room";
 import { MessageArea } from "./MessageArea";
+import { GameEvent, GameEventData } from "./events";
 
 const PathTile = Tile.from(' ', noColor, alpha(yellow[7], 0.5));
 
@@ -96,6 +97,33 @@ export class Level extends Scene {
       .map(t => t.position));
     enemy.position = randomPosition;
     this.player.position = enemy.position;
+
+    game.on(GameEvent.ActorHit, ({attacker, defender, damage}: GameEventData[GameEvent.ActorHit]) => {
+      if (defender === this.player) {
+        this.messages.insert(`The ${attacker.name} hits you for ${damage} damage.`);
+      } else {
+        this.messages.insert(`You hit the ${defender.name} for ${damage} damage.`);
+      }
+    });
+
+    game.on(GameEvent.ActorMissed, ({defender}: GameEventData[GameEvent.ActorMissed]) => {
+      if (defender === this.player) {
+        this.messages.insert(`The ${defender.name} misses you.`);
+      } else {
+        this.messages.insert(`You miss the ${defender.name}.`);
+      }
+    });
+
+    game.on(GameEvent.ActorKilled, ({defender}: GameEventData[GameEvent.ActorKilled]) => {
+      debugger;
+      if (defender === this.player) {
+        this.messages.insert(`You die.`);
+      } else {
+        this.messages.insert(`You deliver a fatal blow to the ${defender.name}.`);
+        this.actors = this.actors.filter(a => a !== defender);
+        this.scheduler.unload(defender);
+      }
+    });
   }
 
   getTileAt(v: Vector) {
