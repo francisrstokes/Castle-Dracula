@@ -53,8 +53,8 @@ export class Random {
     return out;
   }
 
-  bool() {
-    return this.random() > 0.5;
+  bool(percentChance = 0.5) {
+    return this.random() <= percentChance;
   }
 
   diceRoll({n, sides, base}: Dice) {
@@ -79,6 +79,14 @@ export class Random {
       total += this.random();
     }
     return total - 6;
+  }
+
+  normalBetween(min: number, max: number) {
+    return mapRange([-6, 6], [min, max], this.normal());
+  }
+
+  normalIntBetween(min: number, max: number) {
+    return Math.floor(this.normalBetween(min, max + 1));
   }
 
   chooseNormal<T>(a: Array<T>) {

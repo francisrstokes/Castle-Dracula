@@ -6,13 +6,14 @@ import { array, mapRange } from "./util";
 import { descriptionArea, infoArea, playArea } from "./ui";
 import { alpha, blue, gray, linearGradientA, noColor, red, yellow } from "./palette";
 import { environment as E, EnvProperty } from "./environment";
-import { Room, RoomConnection } from "./PCG/dungeon-utilities";
+import { RoomConnection } from "./PCG/dungeon-utilities";
 import { generateLevel, getLevelTileAt, LevelTileGrid } from "./PCG/level";
 import { Actor } from "./Actor";
 import { Scheduler } from "./Scheduler";
 import { Enemy, exampleAI } from "./Actor/Enemy";
 import { AStarFinder } from 'astar-typescript';
 import { Bat } from "./Actor/enemies";
+import { Room } from "./PCG/room";
 
 const PathTile = Tile.from(' ', noColor, alpha(yellow[7], 0.5));
 

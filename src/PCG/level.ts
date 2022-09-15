@@ -3,8 +3,8 @@ import { Random } from "../Random";
 import { GridTile } from "../Scene";
 import { playArea } from "../ui";
 import { array, Nullable } from "../util";
-import { Cardinal, cardinals, directions, findMaxWidthAndHeight, getOppositeCardinal, lineBetween, Room, RoomConnection } from "./dungeon-utilities";
-import { generateRoom, translateRoom } from "./room";
+import { Cardinal, cardinals, directions, findMaxWidthAndHeight, getOppositeCardinal, lineBetween, RoomConnection } from "./dungeon-utilities";
+import { generateRoom, Room, RoomType, translateRoom } from "./room";
 import {environment as E} from '../environment'
 
 export type LevelGridValue = {
@@ -95,13 +95,17 @@ const indexLevel = (level: LevelTileGrid): LevelData => {
 
       const allTiles = [...currentRoomWalls, ...currentRoomFloors];
       const maxes = findMaxWidthAndHeight(allTiles);
+
+      const lt = getLevelTileAt(p, level);
+
       rooms.push({
         connectableEdges: { North: [], South: [], East: [], West: [] },
         exits: [],
         maxWidth: maxes[0],
         maxHeight: maxes[1],
         outline: currentRoomWalls,
-        tiles: allTiles.map(v => (level[v[1]][v[0]] as LevelGridValue).gridTile)
+        tiles: allTiles.map(v => (level[v[1]][v[0]] as LevelGridValue).gridTile),
+        type: RoomType.Unknown
       });
 
       // Write the new room index into the level data for this grid tile

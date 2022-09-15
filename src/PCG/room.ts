@@ -1,13 +1,46 @@
-import { Layers, vAdd, vContains, vDist, Vector, vEqual, vInZeroedBounds } from "../engine";
+import { Layers, vAdd, vContains, vDist, vector, Vector, vEqual, vInZeroedBounds } from "../engine";
 import { Random } from "../Random";
 import { array } from "../util";
 import {environment as E} from '../environment'
-import { Grid, Room, findOutline, cardinals, findRegionsInGrid, findLargestRegionIndex, pointsToGrid, flood, Cardinal, findNorthernPoints, findSouthernPoints, findEasternPoints, findWesternPoints, ConnectableEdges, generateExitsFromConnectableEdges, getGridNeighbourCount, Exit } from "./dungeon-utilities";
+import { Grid, findOutline, cardinals, findRegionsInGrid, findLargestRegionIndex, pointsToGrid, flood, Cardinal, findNorthernPoints, findSouthernPoints, findEasternPoints, findWesternPoints, ConnectableEdges, generateExitsFromConnectableEdges, getGridNeighbourCount, Exit, findMaxWidthAndHeight } from "./dungeon-utilities";
 import { GridTile } from "../Scene";
 
+export enum RoomType {
+  Bite = 'Bite',
+  Circle = 'Circle',
+  Rect = 'Rect',
+  Overlap = 'Overlap',
+  Unknown = 'Unknown',
+}
+
+export type Room = {
+  tiles: GridTile[];
+  exits: Exit[];
+  outline: Vector[];
+  connectableEdges: ConnectableEdges;
+  maxWidth: number;
+  maxHeight: number;
+  type: RoomType;
+};
+
+type ExpRange = {
+  min: number;
+  max: number;
+  exp: number;
+};
+type NormalRange = {
+  min: number;
+  max: number;
+}
+
+const BiteRange: ExpRange = {
+  min: 8,
+  max: 16,
+  exp: 1
+};
 export const generateBiteRoom = (random: Random): Room => {
-  const height = random.intBetween(8, 16);
-  const width = random.intBetween(8, 16);
+  const height = random.intBetween(BiteRange.min, BiteRange.max, BiteRange.exp);
+  const width = random.intBetween(BiteRange.min, BiteRange.max, BiteRange.exp);
 
   let points: Vector[] = [];
   const grid: Grid = array(height, () => array(width, () => 0));
@@ -106,12 +139,17 @@ export const generateBiteRoom = (random: Random): Room => {
         ? E.Wall
         : E.Floor,
       zPos: Layers.BG
-    }))
+    })),
+    type: RoomType.Bite
   };
 };
 
+const CircleRange: NormalRange = {
+  min: 4,
+  max: 18,
+};
 export const generateCircleRoom = (random: Random): Room => {
-  const radius = random.intBetween(4, 15, 3);
+  const radius = random.normalIntBetween(CircleRange.min, CircleRange.max);
   const center: Vector = [radius, radius];
   const points: Vector[] = [];
 
@@ -155,13 +193,22 @@ export const generateCircleRoom = (random: Random): Room => {
     connectableEdges,
     maxHeight: radius*2,
     maxWidth: radius*2,
-    tiles
+    tiles,
+    type: RoomType.Circle
   }
 };
 
+const RectHeightRange: NormalRange = {
+  min: 3,
+  max: 10,
+};
+const RectWidthRange: NormalRange = {
+  min: 3,
+  max: 16,
+};
 export const generateRectRoom = (random: Random): Room => {
-  const height = random.intBetween(4, 16, 3.4);
-  const width = random.intBetween(4, 26, 1.6);
+  const height = random.normalIntBetween(RectHeightRange.min, RectHeightRange.max);
+  const width = random.normalIntBetween(RectWidthRange.min, RectWidthRange.max);
   const outline: Vector[] = [];
   const points: Vector[] = [];
 
@@ -201,9 +248,85 @@ export const generateRectRoom = (random: Random): Room => {
     tiles,
     connectableEdges,
     maxHeight: height,
-    maxWidth: width
+    maxWidth: width,
+    type: RoomType.Rect
   };
 };
+
+export const generateOverlapRoom = (random: Random): Room => {
+  const h0 = random.normalIntBetween(RectHeightRange.min, RectHeightRange.max);
+  const w0 = random.normalIntBetween(RectWidthRange.min, RectWidthRange.max);
+  const p0: Vector[] = [];
+
+  const h1 = random.normalIntBetween(RectHeightRange.min, RectHeightRange.max);
+  const w1 = random.normalIntBetween(RectWidthRange.min, RectWidthRange.max);
+  const p1: Vector[] = [];
+
+  const minW = Math.min(w0, w1);
+  const minH = Math.min(h0, h1);
+
+  const wm = minW - 1;
+  const hm = minH - 1;
+  const translate = vector(random.intBetween(-wm, wm), random.intBetween(-hm, hm));
+
+  for (let y = 0; y <= h0; y++) {
+    for (let x = 0; x <= w0; x++) {
+      p0.push(vAdd(translate, [x, y]));
+    }
+  }
+  for (let y = 0; y <= h1; y++) {
+    for (let x = 0; x <= w1; x++) {
+      p1.push([x, y]);
+    }
+  }
+
+  const adjust = vector(
+    translate[0] < 0 ? -translate[0] : 0,
+    translate[1] < 0 ? -translate[1] : 0,
+  );
+
+  const points: Vector[] = [];
+
+  [...p0, ...p1].forEach(p => {
+    const v = vAdd(adjust, p);
+    if (!vContains(points, v)) {
+      points.push(v);
+    }
+  });
+
+  const outline = findOutline(points);
+  const inner = points.filter(v => !vContains(outline, v));
+
+  const hasAtLeastOneFloorNeighbour = (p: Vector) => {
+    const neighbourhood = cardinals.map(v => vAdd(p, v));
+    return neighbourhood.some(v => vContains(inner, v));
+  };
+
+  const tiles: GridTile[] = points.map(p => ({
+    position: p,
+    env: vContains(outline, p) ? E.Wall : E.Floor,
+    zPos: Layers.BG
+  }));
+
+  const connectableEdges: ConnectableEdges = {
+    [Cardinal.North]: findNorthernPoints(outline).filter(hasAtLeastOneFloorNeighbour),
+    [Cardinal.South]: findSouthernPoints(outline).filter(hasAtLeastOneFloorNeighbour),
+    [Cardinal.East]: findEasternPoints(outline).filter(hasAtLeastOneFloorNeighbour),
+    [Cardinal.West]: findWesternPoints(outline).filter(hasAtLeastOneFloorNeighbour),
+  };
+
+  const maxWH = findMaxWidthAndHeight(points);
+
+  return {
+    exits: generateExitsFromConnectableEdges(connectableEdges, random),
+    outline,
+    tiles,
+    connectableEdges,
+    maxWidth: maxWH[0],
+    maxHeight: maxWH[1],
+    type: RoomType.Overlap
+  };
+}
 
 const cloneRoom = (room: Room): Room => {
   const tiles = room.tiles.map<GridTile>(t => ({
@@ -226,7 +349,8 @@ const cloneRoom = (room: Room): Room => {
     tiles,
     outline,
     maxHeight: room.maxHeight,
-    maxWidth: room.maxWidth
+    maxWidth: room.maxWidth,
+    type: room.type,
   }
 };
 
@@ -255,5 +379,6 @@ export const generateRoom = (random: Random): Room => {
     generateCircleRoom,
     generateRectRoom,
     generateBiteRoom,
+    generateOverlapRoom,
   ])(random);
 };

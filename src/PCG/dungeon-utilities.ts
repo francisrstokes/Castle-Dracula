@@ -1,7 +1,7 @@
 import { DOWN, DOWN_LEFT, DOWN_RIGHT, LEFT, RIGHT, UP, UP_LEFT, UP_RIGHT, vAdd, vector, Vector, vInZeroedBounds } from "../engine";
 import { Random } from "../Random";
-import { GridTile } from "../Scene";
 import { array } from "../util";
+import { Room } from "./room";
 
 export enum Cardinal {
   North = 'North',
@@ -25,19 +25,9 @@ export type RoomConnection = {
 
 export type ConnectableEdges = Record<Cardinal, Vector[]>;
 
-export type Room = {
-  tiles: GridTile[];
-  exits: Exit[];
-  outline: Vector[];
-  connectableEdges: ConnectableEdges;
-  maxWidth: number;
-  maxHeight: number;
-};
-
 export type Grid<T = number> = T[][];
 
 export type Region = Vector[];
-
 
 export const getOppositeCardinal = (c: Cardinal): Cardinal => {
   switch (c) {
