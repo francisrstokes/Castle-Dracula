@@ -1,4 +1,6 @@
 import Rand, {PRNG} from 'rand-seed';
+import { StatRange } from './Actor';
+import { Dice, mapRange } from './util';
 
 export type RandomChoice<T> = {
   index: number;
@@ -13,7 +15,7 @@ export class Random {
   }
 
   between(a: number, b: number, exp = 1) {
-    return a + (this.r.next()**exp * (b - a));
+    return a + (this.random(exp) * (b - a));
   }
 
   intBetween(a: number, b: number, exp = 1) {
@@ -53,6 +55,22 @@ export class Random {
 
   bool() {
     return this.random() > 0.5;
+  }
+
+  diceRoll({n, sides, base}: Dice) {
+    let total = base;
+    for (let i = 0; i < n; i++) {
+      total += this.intBetween(1, sides + 1);
+    }
+    return total;
+  }
+
+  fromRange(stat: StatRange) {
+    return this.between(stat.min, stat.max);
+  }
+
+  fromRangeInt(stat: StatRange) {
+    return this.intBetween(stat.min, stat.max + 1);
   }
 
   normal() {

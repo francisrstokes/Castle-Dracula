@@ -4,6 +4,7 @@ import { Level } from "./Level";
 import { array } from "./util";
 import { gridSize, messageArea, pixelScale } from "./ui";
 import { gray } from "./palette";
+import { Random } from "./Random";
 
 const MessageTile = Tile.from('.', [255, 255, 255, 0.1], [200, 200, 200, 0.4]);
 const renderMessageArea = () => {
@@ -19,12 +20,12 @@ const canvasSize: Vector = vFloor(vScale(screenMultiplier, vMul(gridSize, pixelS
 const game = new Game("game-canvas", ...canvasSize);
 window.bridge && window.bridge.setSize(...canvasSize);
 
-console.log(game.renderer)
-
-const playerObj = new Player(game);
-
 const seed = Math.random() * 264574;
-const level = new Level(game, seed, playerObj);
+const random = new Random(seed);
+
+const playerObj = new Player(game, random);
+
+const level = new Level(game, random, playerObj);
 
 game.renderer.setTileSize(canvasSize[1] / gridSize[1]);
 game.renderer.setPositionAutoScaling(true);

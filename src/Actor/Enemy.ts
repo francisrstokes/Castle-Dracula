@@ -1,7 +1,8 @@
-import { Actor } from ".";
-import { Game, Layers, Tile, Vector, vEqual } from "../engine";
+import { Actor, StatRange } from ".";
+import { Game, Layers, Tile, vDist, Vector, vEqual, vSqDist } from "../engine";
 import { EnvProperty } from "../environment";
 import { Level } from "../Level";
+import { Random } from "../Random";
 import { playArea } from "../ui";
 
 export type UpdateAIFunction = (self: Enemy, frame: number, level: Level) => void;
@@ -9,26 +10,34 @@ export type UpdateAIFunction = (self: Enemy, frame: number, level: Level) => voi
 export type EnemyConfiguration = {
   name: string;
   description: string;
-  speed: number;
   tile: Tile;
   updateAI: UpdateAIFunction;
+
+  hpRange: StatRange;
+  strengthRange: StatRange;
+  acRange: StatRange;
+  speedRange: StatRange;
 };
 
 export class Enemy extends Actor {
   name: string;
   description: string;
-  speed: number;
   tile: Tile;
   updateAI: UpdateAIFunction;
 
-  constructor(game: Game, config: EnemyConfiguration) {
-    super(game);
+  constructor(game: Game, random: Random, config: EnemyConfiguration) {
+    super(game, random);
 
     this.name = config.name;
     this.description = config.description;
-    this.speed = config.speed;
     this.updateAI = config.updateAI;
     this.tile = config.tile;
+
+    this.hp = random.fromRangeInt(config.hpRange);
+    this.maxHp = this.hp;
+    this.strength = random.fromRangeInt(config.strengthRange);
+    this.ac = random.fromRangeInt(config.acRange);
+    this.speed = random.fromRange(config.speedRange);
   }
 
   onBeforeCommit(frame: number): void {}
@@ -91,6 +100,7 @@ export const exampleAI = (() => {
 
         if (vEqual(level.player.position, next)) {
           // Attack!
+          console.log('Going to attack state');
           state = State.Attack;
         } else {
           self.attemptMove(next, level);
@@ -101,7 +111,14 @@ export const exampleAI = (() => {
       } break;
 
       case State.Attack: {
-        state = State.Waiting;
+        const dist = vSqDist(level.player.position, self.position);
+        if (dist !== 1) {
+          console.log(`dist was ${dist}`);
+          state = State.MoveTowardPlayer;
+        } else {
+          console.log(`Attacking...`);
+          self.attack(level.player);
+        }
       } break;
     }
   };

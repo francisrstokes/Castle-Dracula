@@ -1,4 +1,4 @@
-import { Game, Layers, Renderer, Tile, vAdd, vContains, vDist, vector, Vector, vInZeroedBounds, vMul, vObj, vSub } from "./engine";
+import { Game, Layers, Renderer, Tile, vAdd, vContains, vDist, vector, Vector, vEqual, vInZeroedBounds, vMul, vObj, vSub } from "./engine";
 import { Player } from "./Actor/Player";
 import { Random } from "./Random";
 import { GridTile, Scene } from "./Scene";
@@ -12,6 +12,7 @@ import { Actor } from "./Actor";
 import { Scheduler } from "./Scheduler";
 import { Enemy, exampleAI } from "./Actor/Enemy";
 import { AStarFinder } from 'astar-typescript';
+import { Bat } from "./Actor/enemies";
 
 const PathTile = Tile.from(' ', noColor, alpha(yellow[7], 0.5));
 
@@ -54,10 +55,10 @@ export class Level extends Scene {
     timer: 0
   };
 
-  constructor(game: Game, seed: number, public player: Player) {
+  constructor(game: Game, random: Random, public player: Player) {
     super(game);
     this.renderer = game.renderer;
-    this.random = new Random(seed);
+    this.random = random;
 
     const levelTotalArea = playArea.dimensions[0] * playArea.dimensions[1];
     const percentToFill = 0.6;
@@ -82,13 +83,7 @@ export class Level extends Scene {
     }
     this.player.position = startPoint;
 
-    const enemy = new Enemy(game, {
-      description: 'An enemy',
-      name: 'Enemy',
-      speed: 1,
-      tile: Tile.from('e', blue[7], noColor),
-      updateAI: exampleAI
-    });
+    const enemy = new Enemy(game, this.random, Bat);
     this.scheduler.loadActors([this.player, enemy]);
     this.actors.push(enemy);
 
@@ -107,6 +102,10 @@ export class Level extends Scene {
 
   getLevelTileAt(v: Vector) {
     return getLevelTileAt(v, this.level);
+  }
+
+  getActorAt(v: Vector) {
+    return this.actors.find(a => vEqual(a.position, v)) ?? null;
   }
 
   getRoomIndexFromPosition(v: Vector) {

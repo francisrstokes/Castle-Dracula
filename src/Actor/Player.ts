@@ -3,6 +3,7 @@ import { DOWN, Game, Layers, LEFT, RIGHT, Tile, UP, vAdd, vDist, Vector, vSub } 
 import { EnvProperty } from "../environment";
 import { Level } from "../Level";
 import { red } from "../palette";
+import { Random } from "../Random";
 import { playArea } from "../ui";
 
 const getCirclePoints = (radius: number) => {
@@ -29,12 +30,13 @@ export class Player extends Actor {
   viewCircle: Vector[] = [];
   lightLevels: number[] = [0, 0.2, 0.6, 0.6];
 
-  speed = 1.3;
+  name = 'You';
 
+  speed = 1.3;
   inputLag = 5;
 
-  constructor(game: Game) {
-    super(game);
+  constructor(game: Game, random: Random) {
+    super(game, random);
     this.viewCircle = getCirclePoints(this.viewRadius);
   }
 
@@ -59,13 +61,16 @@ export class Player extends Actor {
     if (frame % this.inputLag === 0) {
       const nextPosition = this.getNextPosition();
       if (nextPosition !== this.position) {
-        // TODO: Ask the level if there is an actor at that position
-        // That would constitute an attack
-
-        const levelTile = level.getLevelTileAt(nextPosition);
-        if (levelTile && !levelTile.gridTile.env.tile.hasProperty(EnvProperty.Solid)) {
-          this.position = nextPosition;
+        const actorAtPosition = level.getActorAt(nextPosition);
+        if (actorAtPosition) {
+          this.attack(actorAtPosition);
           return true;
+        } else {
+          const levelTile = level.getLevelTileAt(nextPosition);
+          if (levelTile && !levelTile.gridTile.env.tile.hasProperty(EnvProperty.Solid)) {
+            this.position = nextPosition;
+            return true;
+          }
         }
       }
     }
