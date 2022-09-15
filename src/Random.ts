@@ -54,4 +54,18 @@ export class Random {
   bool() {
     return this.random() > 0.5;
   }
+
+  normal() {
+    let total = 0;
+    for (let i = 0; i < 12; i++) {
+      total += this.random();
+    }
+    return total - 6;
+  }
+
+  chooseNormal<T>(a: Array<T>) {
+    const n = this.normal();
+    const i = Math.floor(mapRange([-6, 6], [0, a.length], n));
+    return a[i];
+  }
 }
