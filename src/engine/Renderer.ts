@@ -48,6 +48,7 @@ const darkenRGBA = ([r, g, b, a]: Color, amount: number): Color => {
 export class Renderer {
   private ctx: CanvasRenderingContext2D;
   private font: string;
+  private fontModifier: string;
   private styleStack: Array<StyleStackProps> = [];
   buffers: [
     Array<BufferedDrawingElement>,
@@ -64,7 +65,9 @@ export class Renderer {
   constructor(canvas: HTMLCanvasElement, canvasWidth: number, canvasHeight: number) {
     canvas.height = canvasHeight;
     canvas.width = canvasWidth;
-    this.font = `'Droid Sans Mono', 'monospace'`;
+
+    this.fontModifier = '';
+    this.font = `'NovaMono', 'monospace'`;
     this.ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
     this.ctx.textBaseline = 'top';
 
@@ -126,10 +129,14 @@ export class Renderer {
     }
   }
 
+  setFont(family: string) {
+    this.font = `'${family}', 'monospace'`;
+  }
+
   setTileSize(size: number, force = false) {
     if (force || size !== this.size) {
       this.size = size;
-      this.ctx.font = `${this.size}px ${this.font}`;
+      this.ctx.font = `${this.fontModifier} ${this.size}px ${this.font}`;
     }
   }
 

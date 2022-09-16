@@ -21,7 +21,8 @@
     "files": [
       "src/electron/electron.js",
       "src/electron/preload.js",
-      "dist/**/*"
+      "dist/**/*",
+      "fonts/**/*"
     ]
   },
   "keywords": [],
