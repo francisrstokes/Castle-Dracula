@@ -271,9 +271,9 @@ export class Level extends Scene {
     const debug = false;
 
     if (!debug) {
-      this.renderPlayerVisual(frame);
       this.renderLevelSeen();
       this.renderPath();
+      this.renderPlayerVisual(frame);
       this.renderTileDescription();
       this.renderInfoArea();
       this.messages.render();

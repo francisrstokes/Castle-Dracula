@@ -179,7 +179,7 @@ export class Renderer {
       fgColor = darkenRGBA(fgColor, opts.darken);
     }
 
-    this.buffers[layer].unshift({
+    this.buffers[layer].push({
       pos: scaled,
       gridPos: pos,
       char: opts?.char ?? char,

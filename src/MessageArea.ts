@@ -29,6 +29,13 @@ export class MessageArea {
   render() {
     const {renderer} = this.game;
 
+    // Background
+    for (let y = 0; y < messageArea.dimensions[1]; y++) {
+      for (let x = 0; x < messageArea.dimensions[0]; x++) {
+        renderer.drawTile(backgroundTile, Layers.HUD, messageArea.translate([x, y]));
+      }
+    }
+
     // Last 3 messages
     for (let i = 0; i < Math.min(MESSAGE_LINES, this.messageBuffer.length); i++) {
       renderer.drawTile(textTile, Layers.HUD, messageArea.translate([0, i]), {
@@ -39,13 +46,6 @@ export class MessageArea {
             ? 0.25
             : 0.5
       });
-    }
-
-    // Background
-    for (let y = 0; y < messageArea.dimensions[1]; y++) {
-      for (let x = 0; x < messageArea.dimensions[0]; x++) {
-        renderer.drawTile(backgroundTile, Layers.HUD, messageArea.translate([x, y]));
-      }
     }
   }
 }
