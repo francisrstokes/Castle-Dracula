@@ -201,25 +201,30 @@ export class Level extends Scene {
     }
   }
 
-  private renderTileDescription() {
-    const DescriptionTile = Tile.from(' ', gray[7], red[0]);
-    let description = '---';
-
-    if (this.showComputedPath) {
-      if (vContains([...this.levelSeen.keys()], this.pointedTile)) {
-        const lt = this.getLevelTileAt(this.pointedTile);
-        if (lt) {
-          description = lt.gridTile.env.description;
-        }
-      } else {
-        description = 'This area cannot be seen clearly';
+  private getDescriptionAtPosition(position: Vector) {
+    // Only get descriptions for areas the player has seen
+    if (vContains([...this.levelSeen.keys()], position)) {
+      // Check if there is an actor in this space
+      const actor = this.actors.find(a => vEqual(a.position, position));
+      if (actor) {
+        return (actor as Enemy).description;
       }
-    } else {
-      const lt = this.getLevelTileAt(this.player.position);
+
+      // Check if there is a level tile here
+      const lt = this.getLevelTileAt(position);
       if (lt) {
-        description = lt.gridTile.env.description;
+        return lt.gridTile.env.description;
       }
     }
+
+    return 'This area cannot be seen clearly';
+  }
+
+  private renderTileDescription() {
+    const DescriptionTile = Tile.from(' ', gray[7], red[0]);
+    const description = this.showComputedPath
+      ? this.getDescriptionAtPosition(this.pointedTile)
+      : this.getDescriptionAtPosition(this.player.position);
 
     array(descriptionArea.dimensions[1], y => array<Vector>(descriptionArea.dimensions[0], x => [x, y]))
     .flat(1)
