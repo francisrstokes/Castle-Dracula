@@ -1,4 +1,4 @@
-import { Game, Layers, Renderer, Tile, vAdd, vContains, vDist, vector, Vector, vEqual, vInZeroedBounds, vMul, vObj, vSub } from "./engine";
+import { Color, Game, Layers, Renderer, Tile, vAdd, vContains, vDist, vector, Vector, vEqual, vInZeroedBounds, vMul, vObj, vSub } from "./engine";
 import { Player } from "./Actor/Player";
 import { Random } from "./Random";
 import { GridTile, Scene } from "./Scene";
@@ -293,6 +293,16 @@ export class Level extends Scene {
     }
 
     this.renderer.commit();
+
+    if (this.showRooms) {
+      const dim = vector(this.renderer.getTileSize()/2, this.renderer.getTileSize());
+      const color: Color = [255, 255, 255, 0.1];
+      for (let y = 0; y < gridSize[1]; y++) {
+        for (let x = 0; x < gridSize[0]; x++) {
+          this.renderer.drawUnfilledRect(color, vMul([x, y], dim), dim);
+        }
+      }
+    }
   }
 
   onBeforeCommit(frame: number): void {}

@@ -78,7 +78,7 @@ export class Renderer {
     this.ctx.fillStyle = `rgba(${r},${g},${b},${a})`;
   }
 
-  private drawRect(c: Color, [x, y]: Vector, [w, h]: Vector) {
+  drawRect(c: Color, [x, y]: Vector, [w, h]: Vector) {
     const oldFill = this.ctx.fillStyle;
     this.setFillStyle(c);
     this.ctx.beginPath();
@@ -86,6 +86,14 @@ export class Renderer {
     this.ctx.fill();
     this.ctx.closePath();
     this.ctx.fillStyle = oldFill;
+  }
+
+  drawUnfilledRect([r, g, b, a]: Color, [x, y]: Vector, [w, h]: Vector) {
+    this.ctx.strokeStyle = `rgba(${r},${g},${b},${a})`;
+    this.ctx.beginPath();
+    this.ctx.strokeRect(x, y, w, h);
+    this.ctx.stroke();
+    this.ctx.closePath();
   }
 
   getCanvas() {
