@@ -16,21 +16,17 @@ export const hpBar = (hp: number, maxHp: number, barSize = 17, textOffset: Vecto
     barChars[barSize - 2 - pc] = percent[percent.length - pc - 1];
   }
   barChars[barSize-1] = '%';
-
-  const textTiles: PositionedTile[] = [];
-  for (let i = 0; i < barSize; i++) {
-    if (barChars[i] !== ' ') {
-      textTiles.push({
-        tile: Tile.from(barChars[i], gray[7], noColor),
-        position: vAdd([i, 0], textOffset)
-      });
-    }
-  }
+  const barText = barChars.join('');
 
   const barTiles = array<PositionedTile>(barSize, i => ({
     tile: (i < numFilled) ? FilledTile : UnfilledTile,
     position: [i, 0]
   }));
 
-  return [...barTiles, ...textTiles];
+  const textTile: PositionedTile = {
+    tile: Tile.from(barText, gray[7], noColor),
+    position: textOffset
+  };
+
+  return [...barTiles, textTile];
 };

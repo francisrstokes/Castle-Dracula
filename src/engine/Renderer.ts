@@ -96,6 +96,13 @@ export class Renderer {
     this.ctx.closePath();
   }
 
+  drawText([x, y]: Vector, s: string) {
+    const xOffset = this.size/2;
+    for (let i = 0; i < s.length; i++) {
+      this.ctx.fillText(s[i], x + (i * xOffset), y);
+    }
+  }
+
   getCanvas() {
     return this.ctx.canvas;
   }
@@ -116,7 +123,7 @@ export class Renderer {
 
           this.setTileSize(size);
           this.setFillStyle(color);
-          this.ctx.fillText(char, pos[0], pos[1]);
+          this.drawText(pos, char);
         }
       }
       // Clear the buffer
