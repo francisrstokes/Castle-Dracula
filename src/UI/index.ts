@@ -1,4 +1,4 @@
-import { vAdd, vector, Vector } from "./engine";
+import { vAdd, vector, Vector } from "../engine";
 
 export type ScreenRegion = {
   dimensions: Vector;
@@ -24,15 +24,15 @@ export const messageArea: ScreenRegion = {
   translate: (v: Vector) => vAdd(messageArea.offset, v)
 };
 
-export const infoArea: ScreenRegion = {
+export const statsArea: ScreenRegion = {
   dimensions: vector(20, 33),
   offset: vector(90, 0),
-  translate: (v: Vector) => vAdd(infoArea.offset, v)
+  translate: (v: Vector) => vAdd(statsArea.offset, v)
 };
 
 export const pixelScale = vector(1, 2);
 
 export const gridSize: Vector = [
-  playArea.dimensions[0] + infoArea.dimensions[0],
-  infoArea.dimensions[1]
+  playArea.dimensions[0] + statsArea.dimensions[0],
+  statsArea.dimensions[1]
 ];

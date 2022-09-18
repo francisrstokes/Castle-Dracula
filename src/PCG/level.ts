@@ -1,7 +1,7 @@
 import { Layers, vAdd, vContains, vector, Vector, vEqual, vFromKey, vInZeroedBounds, vKey, vSub, vTaxiDist } from "../engine";
 import { Random } from "../Random";
 import { GridTile } from "../Scene";
-import { playArea } from "../ui";
+import { playArea } from "../UI";
 import { array, Nullable } from "../util";
 import { Cardinal, cardinals, directions, findMaxWidthAndHeight, getOppositeCardinal, lineBetween, RoomConnection } from "./dungeon-utilities";
 import { generateRoom, Room, RoomType, translateRoom } from "./room";

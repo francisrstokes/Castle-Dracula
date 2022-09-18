@@ -3,7 +3,7 @@ import { Game, Layers, Tile, vDist, Vector, vEqual, vSqDist } from "../engine";
 import { EnvProperty } from "../environment";
 import { Level } from "../Level";
 import { Random } from "../Random";
-import { playArea } from "../ui";
+import { playArea } from "../UI";
 
 export type UpdateAIFunction = (self: Enemy, frame: number, level: Level) => void;
 

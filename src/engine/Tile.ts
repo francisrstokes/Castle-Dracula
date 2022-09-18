@@ -1,4 +1,10 @@
 import {Color} from './Color'
+import { Vector } from './Vector';
+
+export type PositionedTile = {
+  tile: Tile;
+  position: Vector;
+};
 
 export class Tile {
   _char: string;
@@ -15,6 +21,10 @@ export class Tile {
   get color() { return this._color; }
   get char() { return this._char; }
   get background() { return this._background; }
+
+  set color(value) { this._color = value; }
+  set char(value) { this._char = value; }
+  set background(value) { this._background = value; }
 
   hasProperty(prop: string) {
     return prop in this.properties;

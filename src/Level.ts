@@ -3,7 +3,7 @@ import { Player } from "./Actor/Player";
 import { Random } from "./Random";
 import { GridTile, Scene } from "./Scene";
 import { array, mapRange } from "./util";
-import { descriptionArea, infoArea, playArea } from "./ui";
+import { descriptionArea, statsArea, playArea, gridSize } from "./UI";
 import { alpha, blue, gray, linearGradientA, noColor, red, yellow } from "./palette";
 import { environment as E, EnvProperty } from "./environment";
 import { RoomConnection } from "./PCG/dungeon-utilities";
@@ -16,6 +16,7 @@ import { Bat } from "./Actor/enemies";
 import { Room } from "./PCG/room";
 import { MessageArea } from "./MessageArea";
 import { GameEvent, GameEventData } from "./events";
+import { hpBar } from "./UI/hp-bar";
 
 const PathTile = Tile.from(' ', noColor, alpha(yellow[7], 0.5));
 
@@ -234,40 +235,20 @@ export class Level extends Scene {
     });
   }
 
-  private renderInfoArea() {
+  private renderStatsArea() {
     const SideTile = Tile.from(' ', gray[7], gray[1]);
-    const FilledTile = Tile.from(' ', gray[7], red[3]);
-    const UnfilledTile = Tile.from(' ', gray[7], red[1]);
 
     type VectorTile = { v: Vector, t: Tile };
-    const divider: VectorTile[] = array(infoArea.dimensions[1], y => ({ v: [0, y], t: SideTile }));
+    const divider: VectorTile[] = array(statsArea.dimensions[1], y => ({ v: [0, y], t: SideTile }));
 
     divider.forEach(({v, t}) => {
-      this.renderer.drawTile(t, Layers.BG, infoArea.translate(v));
+      this.renderer.drawTile(t, Layers.BG, statsArea.translate(v));
     });
 
-    const numHealthItems = 17;
-    const numFilled = Math.floor(mapRange([0, this.player.maxHp], [0, numHealthItems], this.player.hp));
-    const percent = Math.floor(mapRange([0, this.player.maxHp], [0, 100], this.player.hp)).toString();
-
-    for (let i = 0; i < numHealthItems; i++) {
-      const x = i + 2;
-
-      let char = ' ';
-      if (i === 0) char = 'H';
-      if (i === 1) char = 'P';
-
-      // Percentage at the end of the bar
-      for (let pc = 0; pc < percent.length; pc++) {
-        if (i === numHealthItems - pc - 2) char = percent[percent.length - pc - 1];
-      }
-      if (i === numHealthItems - 1) char = '%';
-
-      const tile = (i < numFilled) ? FilledTile : UnfilledTile;
-      this.renderer.drawTile(tile, Layers.BG, infoArea.translate([x, 1]), {
-        char
-      });
-    }
+    const offset: Vector = [2, 1];
+    hpBar(this.player.hp, this.player.maxHp, 17).forEach(({ position, tile }) => {
+      this.renderer.drawTile(tile, Layers.BG, statsArea.translate(vAdd(position, offset)));
+    });
   }
 
   render(frame: number): void {
@@ -280,7 +261,7 @@ export class Level extends Scene {
       this.renderPath();
       this.renderPlayerVisual(frame);
       this.renderTileDescription();
-      this.renderInfoArea();
+      this.renderStatsArea();
       this.messages.render();
 
       if (this.showRooms) {
@@ -293,7 +274,10 @@ export class Level extends Scene {
               color: noColor
             });
           })
-        })
+        });
+        const mouseString = `(${this.pointedTile.join(',')})`;
+        const coordinateTile = Tile.from(mouseString, gray[7], noColor);
+        this.renderer.drawTile(coordinateTile, Layers.HUD, [0, gridSize[1]-1]);
       }
     } else {
       this.rooms.forEach(room => {

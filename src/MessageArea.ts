@@ -1,6 +1,6 @@
 import { Game, Layers, Tile } from "./engine";
 import { gray, noColor } from "./palette";
-import { messageArea } from "./ui";
+import { messageArea } from "./UI";
 
 export enum MessageType {
   Normal = 'Normal'

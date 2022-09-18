@@ -1,7 +1,7 @@
 import { Game, Vector, vFloor, vMul, vScale } from "./engine";
 import { Player } from "./Actor/Player";
 import { Level } from "./Level";
-import { gridSize, pixelScale } from "./ui";
+import { gridSize, pixelScale } from "./UI";
 import { gray } from "./palette";
 import { Random } from "./Random";
 import { MessageArea } from "./MessageArea";
