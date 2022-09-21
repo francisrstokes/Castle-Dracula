@@ -1,4 +1,4 @@
-import { DOWN, DOWN_LEFT, DOWN_RIGHT, LEFT, RIGHT, UP, UP_LEFT, UP_RIGHT, vAdd, vector, Vector, vInZeroedBounds } from "../engine";
+import { DOWN, DOWN_LEFT, DOWN_RIGHT, LEFT, RIGHT, UP, UP_LEFT, UP_RIGHT, vAdd, vector, Vector, vInZeroedBounds, vKey } from "../engine";
 import { Random } from "../Random";
 import { array } from "../util";
 import { Room } from "./room";
@@ -63,52 +63,25 @@ export const getGridNeighbourCount = (p: Vector, grid: Grid, metric = directions
   return count;
 }
 
-export type FloodOpts = Partial<{
-  neighbourhood: Vector[]
-}>;
-export const flood = (grid: Grid, point: Vector, opts?: FloodOpts) => {
-  const gridUpperBound: Vector = [grid[0].length - 1, grid.length - 1];
-  const collected: Vector[] = [];
-
-  const neighbourhood = opts?.neighbourhood ?? directions;
-
-  const seen: Record<string, true> = {};
-
-  const floodFill = (v: Vector) => {
-    const key = v[0] + ',' + v[1];
-    if (seen[key] || !vInZeroedBounds(gridUpperBound, v)) return;
-
-    if (grid[v[1]][v[0]] === 1) {
-      collected.push(v);
-      seen[key] = true;
-      for (const d of neighbourhood) {
-        floodFill(vAdd(v, d));
-      }
-    }
-  }
-
-  floodFill(point);
-  return collected;
-}
-
 export const findRegionsInGrid = (grid: Grid): Vector[][] => {
   const regions: Vector[][] = [];
   const workingGrid = cloneGrid(grid);
 
   for (let y = 0; y < workingGrid.length; y++) {
     for (let x = 0; x < workingGrid[0].length; x++) {
-      // Fill from the current point
-      const region = flood(workingGrid, [x, y], { neighbourhood: cardinals });
+      let region: Vector[] = [];
+
+      floodfill([x, y], workingGrid, {
+        onReachable: (v, _, flood) => {
+          region.push(v);
+          workingGrid[v[1]][v[0]] = 0;
+          flood();
+        }
+      });
 
       // Did we find a region?
       if (region.length > 0) {
-        // Add it to the region list
         regions.push(region);
-
-        // Remove the nodes we found from the working grid
-        region.forEach(([x, y]) => {
-          workingGrid[y][x] = 0;
-        });
       }
     }
   }
@@ -116,55 +89,82 @@ export const findRegionsInGrid = (grid: Grid): Vector[][] => {
   return regions;
 }
 
-export const findOutline = (points: Vector[], grid?: Grid, bounds?: Vector): Vector[] => {
-  let upper = vector();
-  if (!bounds) {
-    if (grid) {
-      upper = getBoundsOfGrid(grid);
-    } else {
-      points.forEach(([x, y]) => {
-        if (x > upper[0]) {
-          upper[0] = x;
-        }
-        if (y > upper[1]) {
-          upper[1] = y;
-        }
-      });
-    }
-  } else {
-    upper = bounds;
-  }
-
-  let checkGrid: Grid = grid ? grid : array(upper[1] + 1, () => array(upper[0] + 1, () => 0));
-  if (!grid) {
-    points.forEach(p => {
-      checkGrid[p[1]][p[0]] = 1;
-    });
-  }
-
-  const outline: Vector[] = [];
-
-  // Using hashmaps here is quicker than searching the array + vEqual each time
-  const seenOutline: Record<string, true> = {};
+export type FloodEventCb = (pos: Vector, prev: Vector | undefined, flood: () => void, done: () => void) => void;
+export type FloodEvents = Partial<{
+  onReachable: FloodEventCb;
+  onUnreachable: FloodEventCb;
+  onOutOfBounds: FloodEventCb;
+}>;
+export const floodfill = (startPoint: Vector, grid: Grid, events: FloodEvents): void => {
+  const bounds = vector(grid[0].length - 1, grid.length - 1);
   const seen: Record<string, true> = {};
 
-  const outlineFill = (v: Vector, pv?: Vector) => {
-    const key = v[0] + ',' + v[1];
-    if (seen[key]) return;
-    const pvKey = pv ? pv[0] + ',' + pv[1] : '_';
+  let done = false;
+  const onDone = () => {
+    done = true;
+  };
 
-    if (vInZeroedBounds(upper, v) && checkGrid[v[1]][v[0]] === 1) {
-      seen[key] = true;
-      cardinals.forEach(d => outlineFill(vAdd(v, d), v));
-    } else if (pv && !seenOutline[pvKey]) {
-      outline.push(pv);
-      seenOutline[pvKey] = true;
+  const floodInternal = (v: Vector, pv?: Vector) => {
+    if (done) return;
+
+    const key = vKey(v);
+    if (seen[key]) return;
+
+    const floodFn = () => {
+      for (const c of cardinals) {
+        floodInternal(vAdd(c, v), v);
+      }
+    };
+
+    if (!vInZeroedBounds(bounds, v)) {
+      if (events.onOutOfBounds) {
+        events.onOutOfBounds(v, pv, floodFn, onDone);
+      }
+      return;
     }
+
+    // Record this position as seen
+    seen[key] = true;
+
+    if (grid[v[1]][v[0]] === 1) {
+      if (events.onReachable) {
+        events.onReachable(v, pv, floodFn, onDone);
+      }
+      return;
+    }
+
+    if (events.onUnreachable) {
+      events.onUnreachable(v, pv, floodFn, onDone);
+    }
+    return;
   }
-  outlineFill(points[0]);
+
+  // Kick off the flood
+  floodInternal(startPoint);
+};
+
+export const findOutline = (point: Vector, grid: Grid): Vector[] => {
+  const outline: Vector[] = [];
+
+  const seenOutline: Record<string, true> = {};
+  const onUnreachable: FloodEventCb = (_, pv) => {
+    if (pv) {
+      const key = vKey(pv);
+      if (!(key in seenOutline)) {
+        outline.push(pv);
+        seenOutline[key] = true;
+      }
+    }
+  };
+
+  floodfill(point, grid, {
+    onReachable: (_, __, flood) => flood(),
+    onUnreachable,
+    onOutOfBounds: onUnreachable
+  });
 
   return outline;
-}
+};
 
 export const findLargestRegionIndex = (regions: Region[]) => {
   let largestIndex = -1;

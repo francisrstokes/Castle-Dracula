@@ -383,7 +383,10 @@ export const generateLevel = (random: Random, area = 2500): LevelData => {
 
       if (onlyInSelectedRooms) {
         if (wallCount === 1) {
-          console.log('One wall case not yet handled')
+          // TODO: So far, ignoring these cases actually leads to more interestingly connected
+          // rooms. They are a little chaotic though, so maybe only ignoring a fixed number
+          // would be better
+          console.log('One wall case not yet handled');
         } else {
           line.splice(wallIndices[1] + 1, line.length);
           line.splice(0, wallIndices[0]);

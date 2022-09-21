@@ -2,7 +2,7 @@ import { Layers, vAdd, vContains, vDist, vector, Vector, vEqual, vInZeroedBounds
 import { Random } from "../Random";
 import { array } from "../util";
 import {environment as E} from '../environment'
-import { Grid, findOutline, cardinals, findRegionsInGrid, findLargestRegionIndex, pointsToGrid, flood, Cardinal, findNorthernPoints, findSouthernPoints, findEasternPoints, findWesternPoints, ConnectableEdges, generateExitsFromConnectableEdges, getGridNeighbourCount, Exit, findMaxWidthAndHeight } from "./dungeon-utilities";
+import { Grid, findOutline, cardinals, findRegionsInGrid, findLargestRegionIndex, pointsToGrid, Cardinal, findNorthernPoints, findSouthernPoints, findEasternPoints, findWesternPoints, ConnectableEdges, generateExitsFromConnectableEdges, getGridNeighbourCount, Exit, findMaxWidthAndHeight, floodfill } from "./dungeon-utilities";
 import { GridTile } from "../Scene";
 
 export enum RoomType {
@@ -51,7 +51,7 @@ export const generateBiteRoom = (random: Random): Room => {
     }
   }
 
-  let outline = findOutline(points, grid);
+  let outline = findOutline(points[0], grid);
   let P = random.choose(outline);
 
   const tilesToEat = random.intBetween(5, (height*width) >> 1);
@@ -89,7 +89,7 @@ export const generateBiteRoom = (random: Random): Room => {
   }
 
   // Recompute the outline
-  outline = findOutline(points);
+  outline = findOutline(points[0], pointsToGrid(points));
 
   // Flood fill to find the unconnected regions
   const regions = findRegionsInGrid(grid);
@@ -103,7 +103,15 @@ export const generateBiteRoom = (random: Random): Room => {
   outline.forEach(ov => {
     const withOv = [...withoutOutline, ov];
     const grid = pointsToGrid(withOv);
-    const result = flood(grid, ov, {neighbourhood: cardinals});
+    const result: Vector[] = [];
+
+    floodfill(withOv[0], grid, {
+      onReachable: (v, _, flood) => {
+        result.push(v);
+        flood();
+      }
+    });
+
     if (result.length !== withoutOutline.length + 1) {
       hangingWallTiles.push(ov);
     }
@@ -167,7 +175,7 @@ export const generateCircleRoom = (random: Random): Room => {
     }
   }
 
-  const outline = findOutline(points);
+  const outline = findOutline(points[0], pointsToGrid(points));
   const outlineGrid = pointsToGrid(outline);
 
   const canConnectToPoint = (v: Vector) => getGridNeighbourCount(v, outlineGrid, cardinals) >= 1;
@@ -294,7 +302,7 @@ export const generateOverlapRoom = (random: Random): Room => {
     }
   });
 
-  const outline = findOutline(points);
+  const outline = findOutline(points[0], pointsToGrid(points));
   const inner = points.filter(v => !vContains(outline, v));
 
   const hasAtLeastOneFloorNeighbour = (p: Vector) => {
