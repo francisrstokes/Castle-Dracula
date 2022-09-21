@@ -441,7 +441,8 @@ export const generateLevel = (random: Random, area = 2500): LevelData => {
     directions.forEach(([cx, cy]) => {
       const ox = cx+x;
       const oy = cy+y;
-      if (!level[oy][ox]) {
+
+      if (oy < level.length && ox < level[0].length && !level[oy][ox]) {
         level[oy][ox] = {
           gridTile: {
             position: [ox, oy],
